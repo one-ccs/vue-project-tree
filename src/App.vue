@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import ProjectTree from './components/ProjectTree.vue';
+import VueProjectTree from './components/ProjectTree.vue';
 
 interface TreeNode {
     id: number;
@@ -44,9 +44,7 @@ const data = ref<TreeNode[]>([
 ]);
 const currentNode = ref(data.value[0]);
 
-const onCurrentNodeChange = (event: MouseEvent, data: any, nodeElement: HTMLElement) => {
-    !!event;
-    !!nodeElement;
+const onCurrentNodeChange = (data: any) => {
     currentNode.value = data;
 };
 const allowDrag = (data: any) => {
@@ -62,8 +60,8 @@ const allowDrop = (data: any) => {
 </script>
 
 <template>
-    <div class="vue-project-tree">
-        <project-tree
+    <div class="tree">
+        <vue-project-tree
             :data="data"
             node-icon
             @current-node-change="onCurrentNodeChange"
@@ -71,7 +69,8 @@ const allowDrop = (data: any) => {
             sortable
             :allow-drag="allowDrag"
             :allow-drop="allowDrop"
-        ></project-tree>
+        >
+        </vue-project-tree>
     </div>
 </template>
 
@@ -81,7 +80,7 @@ html, body {
     width: 100%;
     height: 100%;
 }
-.vue-project-tree {
+.tree {
     padding: 8px;
 }
 </style>

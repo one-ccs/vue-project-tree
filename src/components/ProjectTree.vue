@@ -1,5 +1,5 @@
 <template>
-    <div class="project-tree" ref="projectTreeRef">
+    <div class="vue-project-tree" ref="projectTreeRef">
         <project-tree-node
             v-if="Array.isArray(props.data)"
             v-for="node in props.data"
@@ -26,6 +26,9 @@
             @dropped="onDropped"
             @end="onDragEnd"
         >
+            <template #expandIcon="{ data, size }">
+                <slot name="expandIcon" :data="data" :size="size"></slot>
+            </template>
             <template #nodeIcon="{ data, size }">
                 <slot name="nodeIcon" :data="data" :size="size"></slot>
             </template>
@@ -36,6 +39,10 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import ProjectTreeNode from "./ProjectTreeNode.vue";
+
+defineOptions({
+    name: "VueProjectTree",
+});
 
 interface Props {
     data: any[];
@@ -116,23 +123,22 @@ let _multipleList = <any>[];
 const emit = defineEmits<{
     (e: "nodeClick", event: MouseEvent, data: any, nodeElement: HTMLElement): void,
     (e: "nodeRightClick", event: MouseEvent, data: any, nodeElement: HTMLElement): void,
-    (e: "currentNodeChange", event: MouseEvent, data: any, nodeElement: HTMLElement): void,
+    (e: "currentNodeChange", data: any): void,
     (e: "start", event: DragEvent, data: any, nodeElement: HTMLElement): void,
     (e: "enter", event: DragEvent, data: any, nodeElement: HTMLElement): void,
     (e: "over", event: DragEvent, data: any, nodeElement: HTMLElement): void,
     (e: "leave", event: DragEvent, data: any, nodeElement: HTMLElement): void,
     (e: "dropped", event: DragEvent, data: any, nodeElement: HTMLElement): void,
-    (e: "droppedBefore", dragData: any, dropData: any): void,
-    (e: "droppedIn", dragData: any, dropData: any): void,
-    (e: "droppedAfter", dragData: any, dropData: any): void,
+    (e: "droppedBefore", dragData: any, dropData: any, index: number): void,
+    (e: "droppedIn", dragData: any, dropData: any, index: number): void,
+    (e: "droppedAfter", dragData: any, dropData: any, index: number): void,
     (e: "end", event: DragEvent, data: any, nodeElement: HTMLElement): void,
 }>();
 
 // 展开节点图标点击事件
 const onExpandClick = (event: MouseEvent, data: any, nodeElement: HTMLElement) => {
     data._isExpanded = !safeBoolean(data._isExpanded, true);
-    currentData.value = data;
-    emit("currentNodeChange", event, data, nodeElement);
+    setCurrentNode(data);
     emit("nodeClick", event, data, nodeElement);
 };
 // 节点单击事件
@@ -159,8 +165,7 @@ const onNodeClick = (event: MouseEvent, data: any, nodeElement: HTMLElement) => 
     // 记录上次点击元素对应的 data
     _lastClickData = data;
 
-    currentData.value = data;
-    emit("currentNodeChange", event, data, nodeElement);
+    setCurrentNode(data);
     emit("nodeClick", event, data, nodeElement);
 };
 // 节点右键单击事件
@@ -168,13 +173,12 @@ const onNodeRightClick = (event: MouseEvent, data: any, nodeElement: HTMLElement
     emit("nodeRightClick", event, data, nodeElement);
 };
 // 当前节点改变事件
-const onCurrentNodeChange = (event: MouseEvent, data: any, nodeElement: HTMLElement) => {
-    emit("currentNodeChange", event, data, nodeElement);
+const onCurrentNodeChange = (data: any) => {
+    emit("currentNodeChange", data);
 };
 // 节点拖拽开始事件
 const onDragStart = (event: DragEvent, data: any, nodeElement: HTMLElement) => {
-    currentData.value = data;
-    emit("currentNodeChange", event, data, nodeElement);
+    setCurrentNode(data);
     emit("nodeClick", event, data, nodeElement);
     emit("start", event, data, nodeElement);
 };
@@ -241,18 +245,18 @@ const onDropped = (event: DragEvent, data: any, nodeElement: HTMLElement) => {
 };
 // 节点拖拽放到节点前事件
 const onDroppedBefore = (dragData: any, dropData: any) => {
-    moveBefore(dragData, dropData);
-    emit("droppedBefore", dragData, dropData);
+    const index = moveBefore(dragData, dropData);
+    emit("droppedBefore", dragData, dropData, index);
 };
 // 节点拖拽放到节点内事件
 const onDroppedIn = (dragData: any, dropData: any) => {
-    moveIn(dragData, dropData);
-    emit("droppedIn", dragData, dropData);
+    const index = moveIn(dragData, dropData);
+    emit("droppedIn", dragData, dropData, index);
 };
 // 节点拖拽放到节点后事件
 const onDroppedAfter = (dragData: any, dropData: any) => {
-    moveAfter(dragData, dropData);
-    emit("droppedAfter", dragData, dropData);
+    const index = moveAfter(dragData, dropData);
+    emit("droppedAfter", dragData, dropData, index);
 };
 // 节点拖拽结束事件
 const onDragEnd = (event: DragEvent, data: any, nodeElement: HTMLElement) => {
@@ -266,7 +270,9 @@ const onDragEnd = (event: DragEvent, data: any, nodeElement: HTMLElement) => {
 /**
  * 返回多选节点的 data
  */
-const getMultipleList = () => _multipleList;
+const getMultipleList = () => {
+    return _multipleList;
+};
 /**
  * 清除多选列表
  */
@@ -295,11 +301,18 @@ const filter = (value: any, _data: any) => {
     });
 };
 /**
- * 设置当前选中节点
+ * 设置当前选中节点的数据
  * @param data 节点数据
  */
 const setCurrentNode = (data: any) => {
     currentData.value = data;
+    onCurrentNodeChange(data);
+};
+/**
+ * 获取当前选中节点的数据
+ */
+const getCurrentNode = () => {
+    return currentData.value;
 };
 /**
  * 通过节点主键值查找节点数据
@@ -319,7 +332,7 @@ const findNodeById = (id: any, data?: any[]): any | null => {
     return null;
 }
 /**
- * 通过节点主键值查找父节点数据
+ * 通过节点主键值查找父节点数据，没有则返回 null
  * @param id 节点主键值
  * @param data (可选)查找的节点数据
  */
@@ -335,7 +348,11 @@ const findParentById = (id: any, data?: any[], parent?: any): any | null => {
     }
     return null;
 };
-const _findSafeParentById = (id: any) => {
+/**
+ * 通过节点主键值查找父节点数据，没有则返回 children 为根列表的节点数据
+ * @param id 节点主键值
+ */
+const safeFindParentById = (id: any) => {
     const data = findParentById(id);
     if (data) return data;
 
@@ -346,22 +363,30 @@ const _findSafeParentById = (id: any) => {
 
 /**
  * 移动到节点前
+ * @param dragData 拖拽节点数据
+ * @param dropData 放下节点数据
+ * @returns 移动后的节点索引
  */
- const moveBefore = (dragData: any, dropData: any) => {
-    const dragParent = _findSafeParentById(dragData[props.idKey]);
-    const dropParent = _findSafeParentById(dropData[props.idKey]);
+ const moveBefore = (dragData: any, dropData: any): number => {
+    const dragParent = safeFindParentById(dragData[props.idKey]);
+    const dropParent = safeFindParentById(dropData[props.idKey]);
     const dragIndex = dragParent[props.childrenKey].indexOf(dragData);
     const dropIndex = dropParent[props.childrenKey].indexOf(dropData);
     // 特殊情况
-    if (dragParent === dropParent && dragIndex === dropIndex - 1) return;
+    if (dragParent === dropParent && dragIndex === dropIndex - 1) return dragIndex;
     dragParent[props.childrenKey].splice(dragIndex, 1);
     dropParent[props.childrenKey].splice(dropIndex, 0, dragData);
+
+    return dropIndex;
 };
 /**
  * 移动到节点内
+ * @param dragData 拖拽节点数据
+ * @param dropData 放下节点数据
+ * @returns 移动后的节点索引
  */
-const moveIn = (dragData: any, dropData: any) => {
-    const dragParent = _findSafeParentById(dragData[props.idKey]);
+const moveIn = (dragData: any, dropData: any): number => {
+    const dragParent = safeFindParentById(dragData[props.idKey]);
     const dragIndex = dragParent[props.childrenKey].indexOf(dragData);
     // 添加新节点
     dropData[props.childrenKey] ?
@@ -369,17 +394,24 @@ const moveIn = (dragData: any, dropData: any) => {
         (dropData[props.childrenKey] = [ dragData ]);
     // 删除旧节点
     dragParent[props.childrenKey].splice(dragIndex, 1);
+
+    return dropData[props.childrenKey].indexOf(dragData);
 };
 /**
  * 移动到节点后
+ * @param dragData 拖拽节点数据
+ * @param dropData 放下节点数据
+ * @returns 移动后的节点索引
  */
 const moveAfter = (dragData: any, dropData: any) => {
-    const dragParent = _findSafeParentById(dragData[props.idKey]);
-    const dropParent = _findSafeParentById(dropData[props.idKey]);
+    const dragParent = safeFindParentById(dragData[props.idKey]);
+    const dropParent = safeFindParentById(dropData[props.idKey]);
     const dragIndex = dragParent[props.childrenKey].indexOf(dragData);
-    const dropIndex = dropParent[props.childrenKey].indexOf(dropData);
+    const dropIndex = dropParent[props.childrenKey].indexOf(dropData) + 1;
     dragParent[props.childrenKey].splice(dragIndex, 1);
-    dropParent[props.childrenKey].splice(dropIndex + 1, 0, dragData);
+    dropParent[props.childrenKey].splice(dropIndex, 0, dragData);
+
+    return dropIndex;
 };
 
 // 抛出方法
@@ -389,8 +421,10 @@ defineExpose({
     getMoveList,
     filter,
     setCurrentNode,
+    getCurrentNode,
     findNodeById,
     findParentById,
+    safeFindParentById,
     moveBefore,
     moveIn,
     moveAfter,
@@ -415,7 +449,7 @@ const safeVolume = (object: any, property: string, value: any) => {
 </script>
 
 <style lang="less">
-.project-tree {
+.vue-project-tree {
     --indent-width: v-bind(_indent);
     --node-height: v-bind(_nodeHeight);
     position: relative;

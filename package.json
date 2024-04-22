@@ -7,7 +7,7 @@
         "project-tree"
     ],
     "description": "使用 Vue3 + TS 实现的树形结构展示组件，有拖拽、排序、自定义图标等功能",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "license": "MIT",
     "homepage": "https://github.com/one-ccs/vue-project-tree",
     "repository": {
@@ -19,8 +19,8 @@
     },
     "private": false,
     "files": [
-        "dist",
-        "src"
+        "src/*",
+        "index.ts"
     ],
     "type": "module",
     "scripts": {

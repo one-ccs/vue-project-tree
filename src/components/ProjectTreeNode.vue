@@ -27,9 +27,11 @@
                 :style="{ visibility: data[childrenKey]?.length ? 'visible' : 'hidden'}"
                 @click="onExpandClick($event, data, projectTreeNodeRef)"
             >
-                <svg viewBox="0 0 1024 1024" fill="currentColor" :width="expandIconSize" :height="expandIconSize">
-                    <path d="M322.58048 852.35712a34.05824 34.05824 0 0 1-8.51968-48.9472l192.14336-255.50848a59.65824 59.65824 0 0 0 0-71.80288l-192.14336-255.488a34.03776 34.03776 0 0 1 8.51968-48.9472 47.18592 47.18592 0 0 1 57.344 4.096l310.12864 276.70528a79.60576 79.60576 0 0 1 0 119.07072l-310.10816 276.6848a47.18592 47.18592 0 0 1-57.344 4.13696z" />
-                </svg>
+                <slot name="expandIcon" :data="data" :size="expandIconSize">
+                    <svg viewBox="0 0 1024 1024" fill="currentColor" :width="expandIconSize" :height="expandIconSize">
+                        <path d="M322.58048 852.35712a34.05824 34.05824 0 0 1-8.51968-48.9472l192.14336-255.50848a59.65824 59.65824 0 0 0 0-71.80288l-192.14336-255.488a34.03776 34.03776 0 0 1 8.51968-48.9472 47.18592 47.18592 0 0 1 57.344 4.096l310.12864 276.70528a79.60576 79.60576 0 0 1 0 119.07072l-310.10816 276.6848a47.18592 47.18592 0 0 1-57.344 4.13696z" />
+                    </svg>
+                </slot>
             </div>
             <div
                 class="project-tree-icon project-tree-node-icon"
@@ -81,7 +83,14 @@
                         @over="onDragOver"
                         @dropped="onDropped"
                         @end="onDragEnd"
-                    />
+                    >
+                        <template #expandIcon="slotProps: { data : any, size: number }">
+                            <slot name="expandIcon" :data="slotProps.data" :size="slotProps.size"></slot>
+                        </template>
+                        <template #nodeIcon="slotProps: { data : any, size: number }">
+                            <slot name="nodeIcon" :data="slotProps.data" :size="slotProps.size"></slot>
+                        </template>
+                    </project-tree-node>
                 </div>
             </expand-transition>
         </template>
