@@ -195,25 +195,30 @@ const onDragEnter = (event: DragEvent, data: any, nodeElement: HTMLElement) => {
 const onDragOver = (event: DragEvent, data: any, nodeElement: HTMLElement) => {
     // 阻止默认事件，防止样式不生效
     event.preventDefault();
-    safeVolume(event.dataTransfer, "dropEffect", "none");
     // 拖动视觉提示
-    if (currentData.value[props.idKey] !== data[props.idKey] && safeBoolean(props.allowDrop(data))) {
-        // 修改鼠标样式
-        event.ctrlKey ?
-            safeVolume(event.dataTransfer, "dropEffect", "copy") :
-            safeVolume(event.dataTransfer, "dropEffect", "move");
-        // 放下提示效果
+    if (currentData.value[props.idKey] !== data[props.idKey]) {
+        // 修改放下提示效果、鼠标样式
         if (props.sortable && event.offsetY <= dropOffset) {
-            data._isDropTop = true;
-            data._isDropIn = data._isDropBottom = false;
+            safeVolume(event.dataTransfer, "dropEffect", "copy");
+            data._isDropBefore = true;
+            data._isDropIn = data._isDropAfter = false;
         }
         else if (props.sortable && event.offsetY >= parseFloat(props.nodeHeight as string) - dropOffset) {
-            data._isDropTop = data._isDropIn = false;
-            data._isDropBottom = true;
+            safeVolume(event.dataTransfer, "dropEffect", "copy");
+            data._isDropBefore = data._isDropIn = false;
+            data._isDropAfter = true;
+        }
+        else if (safeBoolean(props.allowDrop(data))) {
+            safeVolume(event.dataTransfer, "dropEffect", "copy");
+            data._isDropIn = true;
+            data._isDropBefore = data._isDropAfter = false;
         }
         else {
-            data._isDropIn = true;
-            data._isDropTop = data._isDropBottom = false;
+            safeVolume(event.dataTransfer, "dropEffect", "none");
+            data._isDropIn = data._isDropBefore = data._isDropAfter = false;
+        }
+        if (event.ctrlKey && event.dataTransfer?.dropEffect === "copy") {
+            safeVolume(event.dataTransfer, "dropEffect", "move");
         }
     }
     emit("over", event, data, nodeElement);
@@ -221,25 +226,22 @@ const onDragOver = (event: DragEvent, data: any, nodeElement: HTMLElement) => {
 // 节点拖拽离开事件
 const onDragLeave = (event: DragEvent, data: any, nodeElement: HTMLElement) => {
     // 清除拖动视觉提示
-    data._isDropTop = data._isDropIn = data._isDropBottom = false;
+    data._isDropBefore = data._isDropIn = data._isDropAfter = false;
     emit("leave", event, data, nodeElement);
 };
 // 节点拖拽放下事件
 const onDropped = (event: DragEvent, data: any, nodeElement: HTMLElement) => {
     // 清除拖动视觉提示
-    data._isDropTop = data._isDropIn = data._isDropBottom = false;
+    data._isDropBefore = data._isDropIn = data._isDropAfter = false;
     // 抛出子事件
-    if (safeBoolean(props.allowDrop(data))) {
-        // 放下提示效果
-        if (props.sortable && event.offsetY <= dropOffset) {
-            onDroppedBefore(currentData.value, data);
-        }
-        else if (props.sortable && event.offsetY >= parseFloat(props.nodeHeight as string) - dropOffset) {
-            onDroppedAfter(currentData.value, data);
-        }
-        else {
-            onDroppedIn(currentData.value, data);
-        }
+    if (props.sortable && event.offsetY <= dropOffset) {
+        onDroppedBefore(currentData.value, data);
+    }
+    else if (props.sortable && event.offsetY >= parseFloat(props.nodeHeight as string) - dropOffset) {
+        onDroppedAfter(currentData.value, data);
+    }
+    else if (safeBoolean(props.allowDrop(data))) {
+        onDroppedIn(currentData.value, data);
     }
     emit("dropped", event, data, nodeElement);
 };

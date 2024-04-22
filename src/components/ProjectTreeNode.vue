@@ -45,14 +45,14 @@
                 </slot>
             </div>
             <div class="project-tree-label">
-                <div v-if="safeBoolean(data._isDropTop)" class="project-tree-label-drag-top-line"></div>
+                <div v-if="safeBoolean(data._isDropBefore)" class="project-tree-label-drag-top-line"></div>
                 <div
                     class="project-tree-label-text"
                     :class="{
                         'is-drop-in': safeBoolean(data._isDropIn),
                     }"
                 >{{ data.label }}</div>
-                <div v-if="safeBoolean(data._isDropBottom)" class="project-tree-label-drag-bottom-line"></div>
+                <div v-if="safeBoolean(data._isDropAfter)" class="project-tree-label-drag-bottom-line"></div>
             </div>
         </div>
         <template v-if="data[childrenKey]?.length">
