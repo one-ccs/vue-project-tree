@@ -15,6 +15,7 @@
             :node-icon-size="_nodeIconSize"
             @expand-click="onExpandClick"
             @node-click="onNodeClick"
+            @node-dblclick="onNodeDblclick"
             @node-right-click="onNodeRightClick"
             :draggable="props.draggable"
             :allow-drag="props.allowDrag"
@@ -122,6 +123,7 @@ let _multipleList = <any>[];
 /* 注意：以下事件已经冒泡到顶层，仅触发一次 */
 const emit = defineEmits<{
     (e: "nodeClick", event: MouseEvent, data: any, nodeElement: HTMLElement): void,
+    (e: "nodeDblclick", event: MouseEvent, data: any, nodeElement: HTMLElement): void,
     (e: "nodeRightClick", event: MouseEvent, data: any, nodeElement: HTMLElement): void,
     (e: "currentNodeChange", data: any): void,
     (e: "start", event: DragEvent, data: any, nodeElement: HTMLElement): void,
@@ -129,16 +131,16 @@ const emit = defineEmits<{
     (e: "over", event: DragEvent, data: any, nodeElement: HTMLElement): void,
     (e: "leave", event: DragEvent, data: any, nodeElement: HTMLElement): void,
     (e: "dropped", event: DragEvent, data: any, nodeElement: HTMLElement): void,
-    (e: "droppedBefore", dragData: any, dropData: any, index: number): void,
-    (e: "droppedIn", dragData: any, dropData: any, index: number): void,
-    (e: "droppedAfter", dragData: any, dropData: any, index: number): void,
+    (e: "droppedBefore", dragData: any[], dropData: any, done: Function): void,
+    (e: "droppedIn", dragData: any[], dropData: any, done: Function): void,
+    (e: "droppedAfter", dragData: any[], dropData: any, done: Function): void,
     (e: "end", event: DragEvent, data: any, nodeElement: HTMLElement): void,
 }>();
 
 // 展开节点图标点击事件
 const onExpandClick = (event: MouseEvent, data: any, nodeElement: HTMLElement) => {
     data._isExpanded = !safeBoolean(data._isExpanded, true);
-    setCurrentNode(data);
+    setCurrentData(data);
     emit("nodeClick", event, data, nodeElement);
 };
 // 节点单击事件
@@ -165,8 +167,12 @@ const onNodeClick = (event: MouseEvent, data: any, nodeElement: HTMLElement) => 
     // 记录上次点击元素对应的 data
     _lastClickData = data;
 
-    setCurrentNode(data);
+    setCurrentData(data);
     emit("nodeClick", event, data, nodeElement);
+};
+// 节点双击事件
+const onNodeDblclick = (event: MouseEvent, data: any, nodeElement: HTMLElement) => {
+    emit("nodeDblclick", event, data, nodeElement);
 };
 // 节点右键单击事件
 const onNodeRightClick = (event: MouseEvent, data: any, nodeElement: HTMLElement) => {
@@ -178,7 +184,10 @@ const onCurrentNodeChange = (data: any) => {
 };
 // 节点拖拽开始事件
 const onDragStart = (event: DragEvent, data: any, nodeElement: HTMLElement) => {
-    setCurrentNode(data);
+    setCurrentData(data);
+    // 若直接移动其它节点 则清除多选列表
+    const moveList = getMoveList();
+    if (moveList.length && !moveList.includes(data)) clearMultipleList();
     emit("nodeClick", event, data, nodeElement);
     emit("start", event, data, nodeElement);
 };
@@ -196,7 +205,7 @@ const onDragOver = (event: DragEvent, data: any, nodeElement: HTMLElement) => {
     // 阻止默认事件，防止样式不生效
     event.preventDefault();
     // 拖动视觉提示
-    if (currentData.value[props.idKey] !== data[props.idKey]) {
+    if (!getMoveList().includes(data)) {
         // 修改放下提示效果、鼠标样式
         if (props.sortable && event.offsetY <= dropOffset) {
             safeVolume(event.dataTransfer, "dropEffect", "copy");
@@ -221,6 +230,9 @@ const onDragOver = (event: DragEvent, data: any, nodeElement: HTMLElement) => {
             safeVolume(event.dataTransfer, "dropEffect", "move");
         }
     }
+    else {
+        safeVolume(event.dataTransfer, "dropEffect", "none");
+    }
     emit("over", event, data, nodeElement);
 };
 // 节点拖拽离开事件
@@ -235,30 +247,42 @@ const onDropped = (event: DragEvent, data: any, nodeElement: HTMLElement) => {
     data._isDropBefore = data._isDropIn = data._isDropAfter = false;
     // 抛出子事件
     if (props.sortable && event.offsetY <= dropOffset) {
-        onDroppedBefore(currentData.value, data);
+        onDroppedBefore(getMoveList(), data);
     }
     else if (props.sortable && event.offsetY >= parseFloat(props.nodeHeight as string) - dropOffset) {
-        onDroppedAfter(currentData.value, data);
+        onDroppedAfter(getMoveList(), data);
     }
     else if (safeBoolean(props.allowDrop(data))) {
-        onDroppedIn(currentData.value, data);
+        onDroppedIn(getMoveList(), data);
     }
     emit("dropped", event, data, nodeElement);
 };
 // 节点拖拽放到节点前事件
-const onDroppedBefore = (dragData: any, dropData: any) => {
-    const index = moveBefore(dragData, dropData);
-    emit("droppedBefore", dragData, dropData, index);
+const onDroppedBefore = (dragData: any[], dropData: any) => {
+    let done = false;
+
+    emit("droppedBefore", dragData, dropData, () => done = true);
+    if (done) return;
+
+    moveBefore(dragData, dropData);
 };
 // 节点拖拽放到节点内事件
-const onDroppedIn = (dragData: any, dropData: any) => {
-    const index = moveIn(dragData, dropData);
-    emit("droppedIn", dragData, dropData, index);
+const onDroppedIn = (dragData: any[], dropData: any) => {
+    let done = false;
+
+    emit("droppedIn", dragData, dropData, () => done = true);
+    if (done) return;
+
+    moveIn(dragData, dropData);
 };
 // 节点拖拽放到节点后事件
-const onDroppedAfter = (dragData: any, dropData: any) => {
-    const index = moveAfter(dragData, dropData);
-    emit("droppedAfter", dragData, dropData, index);
+const onDroppedAfter = (dragData: any[], dropData: any) => {
+    let done = false;
+
+    emit("droppedAfter", dragData, dropData, () => done = true);
+    if (done) return;
+
+    moveAfter(dragData, dropData);
 };
 // 节点拖拽结束事件
 const onDragEnd = (event: DragEvent, data: any, nodeElement: HTMLElement) => {
@@ -266,7 +290,6 @@ const onDragEnd = (event: DragEvent, data: any, nodeElement: HTMLElement) => {
     !!nodeElement;
     // 默认的 data 和 nodeElement 为拖拽开始时的值，需在 dragenter 追踪变化
     emit("end", event, _dropTargetData.value, _dropTargetElement.value);
-    clearMultipleList();
 };
 
 /**
@@ -306,14 +329,14 @@ const filter = (value: any, _data: any) => {
  * 设置当前选中节点的数据
  * @param data 节点数据
  */
-const setCurrentNode = (data: any) => {
+const setCurrentData = (data: any) => {
     currentData.value = data;
     onCurrentNodeChange(data);
 };
 /**
  * 获取当前选中节点的数据
  */
-const getCurrentNode = () => {
+const getCurrentData = () => {
     return currentData.value;
 };
 /**
@@ -334,11 +357,11 @@ const findNodeById = (id: any, data?: any[]): any | null => {
     return null;
 }
 /**
- * 通过节点主键值查找父节点数据，没有则返回 null
+ * 通过节点主键值查找父节点数据，没有则返回 null, 根列表返回 undefined
  * @param id 节点主键值
  * @param data (可选)查找的节点数据
  */
-const findParentById = (id: any, data?: any[], parent?: any): any | null => {
+const findParentById = (id: any, data?: any[], parent?: any): any | null | undefined => {
     if (!data) data = props.data;
 
     for (const _data of data) {
@@ -351,67 +374,88 @@ const findParentById = (id: any, data?: any[], parent?: any): any | null => {
     return null;
 };
 /**
- * 通过节点主键值查找父节点数据，没有则返回 children 为根列表的节点数据
+ * 通过节点主键值查找父节点数据
+ * 若为根节点列表的数据，则返回 children 为根列表的节点数据
  * @param id 节点主键值
  */
 const safeFindParentById = (id: any) => {
-    const data = findParentById(id);
-    if (data) return data;
+    let data = findParentById(id);
 
-    let _data = <any>{};
-    _data[props.childrenKey] = props.data;
-    return _data;
+    if (data === undefined) {
+        data = <any>{};
+        data[props.childrenKey] = props.data;
+    }
+    if (data === null) console.warn("safeFindParentById 未找到父节点")
+    return data;
 };
 
 /**
+ * 移除节点
+ * @param dataList 节点数据列表
+ */
+const removeData = (dataList: any[]) => {
+    dataList.forEach((data: any) => {
+        const dataParent = safeFindParentById(data[props.idKey]);
+        const dataIndex = dataParent[props.childrenKey].indexOf(data);
+
+        dataParent[props.childrenKey].splice(dataIndex, 1);
+    });
+};
+/**
+ * 添加节点
+ * @param dataList 节点数据列表
+ * @param parentData 父节点数据
+ * @param insertIndex 插入的下标（默认0）
+ */
+const addData = (dataList: any[], parentData: any, insertIndex = 0) => {
+    if (!parentData[props.childrenKey]?.length) parentData[props.childrenKey] = [];
+
+    parentData[props.childrenKey].splice(insertIndex, 0, ...dataList);
+};
+/**
  * 移动到节点前
- * @param dragData 拖拽节点数据
+ * @param dragData 拖拽节点数据列表
  * @param dropData 放下节点数据
  * @returns 移动后的节点索引
  */
- const moveBefore = (dragData: any, dropData: any): number => {
-    const dragParent = safeFindParentById(dragData[props.idKey]);
+ const moveBefore = (dragData: any[], dropData: any): number => {
+    // 移除旧节点
+    removeData(dragData);
+    // 添加新节点
     const dropParent = safeFindParentById(dropData[props.idKey]);
-    const dragIndex = dragParent[props.childrenKey].indexOf(dragData);
     const dropIndex = dropParent[props.childrenKey].indexOf(dropData);
-    // 特殊情况
-    if (dragParent === dropParent && dragIndex === dropIndex - 1) return dragIndex;
-    dragParent[props.childrenKey].splice(dragIndex, 1);
-    dropParent[props.childrenKey].splice(dropIndex, 0, dragData);
+    addData(dragData, dropParent, dropIndex);
 
     return dropIndex;
 };
 /**
  * 移动到节点内
- * @param dragData 拖拽节点数据
+ * @param dragData 拖拽节点数据列表
  * @param dropData 放下节点数据
  * @returns 移动后的节点索引
  */
-const moveIn = (dragData: any, dropData: any): number => {
-    const dragParent = safeFindParentById(dragData[props.idKey]);
-    const dragIndex = dragParent[props.childrenKey].indexOf(dragData);
+const moveIn = (dragData: any[], dropData: any): number => {
+    // 移除旧节点
+    removeData(dragData);
     // 添加新节点
-    dropData[props.childrenKey] ?
-        dropData[props.childrenKey].push(dragData) :
-        (dropData[props.childrenKey] = [ dragData ]);
-    // 删除旧节点
-    dragParent[props.childrenKey].splice(dragIndex, 1);
+    const insertIndex = dropData[props.childrenKey]?.length || 0;
+    addData(dragData, dropData, insertIndex);
 
-    return dropData[props.childrenKey].indexOf(dragData);
+    return insertIndex;
 };
 /**
  * 移动到节点后
- * @param dragData 拖拽节点数据
+ * @param dragData 拖拽节点数据列表
  * @param dropData 放下节点数据
  * @returns 移动后的节点索引
  */
-const moveAfter = (dragData: any, dropData: any) => {
-    const dragParent = safeFindParentById(dragData[props.idKey]);
+const moveAfter = (dragData: any[], dropData: any) => {
+    // 移除旧节点
+    removeData(dragData);
+    // 添加新节点
     const dropParent = safeFindParentById(dropData[props.idKey]);
-    const dragIndex = dragParent[props.childrenKey].indexOf(dragData);
     const dropIndex = dropParent[props.childrenKey].indexOf(dropData) + 1;
-    dragParent[props.childrenKey].splice(dragIndex, 1);
-    dropParent[props.childrenKey].splice(dropIndex, 0, dragData);
+    addData(dragData, dropParent, dropIndex);
 
     return dropIndex;
 };
@@ -422,11 +466,13 @@ defineExpose({
     clearMultipleList,
     getMoveList,
     filter,
-    setCurrentNode,
-    getCurrentNode,
+    setCurrentData,
+    getCurrentData,
     findNodeById,
     findParentById,
     safeFindParentById,
+    removeData,
+    addData,
     moveBefore,
     moveIn,
     moveAfter,

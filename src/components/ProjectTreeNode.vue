@@ -15,6 +15,7 @@
         <div
             class="project-tree-node__content"
             @click.self="onNodeClick($event, data, projectTreeNodeRef)"
+            @dblclick.self="onNodeDblclick($event, data, projectTreeNodeRef)"
             @contextmenu.self="onNodeRightClick($event, data, projectTreeNodeRef)"
             @dragenter.self="onDragEnter($event, data, projectTreeNodeRef)"
             @dragover.self="onDragOver($event, data, projectTreeNodeRef)"
@@ -74,6 +75,7 @@
                         :node-icon-size="nodeIconSize"
                         @expand-click="onExpandClick"
                         @node-click.self="onNodeClick"
+                        @node-dblclick="onNodeDblclick"
                         @node-right-click="onNodeRightClick" :draggable="draggable"
                         :allow-drag="allowDrag"
                         :allow-drop="allowDrop"
@@ -137,6 +139,7 @@ const projectTreeNodeRef = ref<any>(null);
 const emit = defineEmits<{
     (e: "expandClick", event: MouseEvent, data: any, nodeElement: HTMLElement): void,
     (e: "nodeClick", event: MouseEvent, data: any, nodeElement: HTMLElement): void,
+    (e: "nodeDblclick", event: MouseEvent, data: any, nodeElement: HTMLElement): void,
     (e: "nodeRightClick", event: MouseEvent, data: any, nodeElement: HTMLElement): void,
     (e: "start", event: DragEvent, data: any, nodeElement: HTMLElement): void,
     (e: "enter", event: DragEvent, data: any, nodeElement: HTMLElement): void,
@@ -153,6 +156,10 @@ const onExpandClick = (event: MouseEvent, data: any, nodeElement: HTMLElement) =
 // 节点单击事件
 const onNodeClick = (event: MouseEvent, data: any, nodeElement: HTMLElement) => {
     emit("nodeClick", event, data, nodeElement);
+};
+// 节点双击事件
+const onNodeDblclick = (event: MouseEvent, data: any, nodeElement: HTMLElement) => {
+    emit("nodeDblclick", event, data, nodeElement);
 };
 // 节点右键单击事件
 const onNodeRightClick = (event: MouseEvent, data: any, nodeElement: HTMLElement) => {

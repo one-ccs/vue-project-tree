@@ -88,6 +88,7 @@ const data = ref<TreeNode[]>([
 | 事件名 | 说明 | 回调参数 |
 | --- | --- | --- |
 | nodeClick | 节点点击事件 | (event: DragEvent, data: any, nodeElement: HTMLElement) 分别为事件数据，节点数据，节点元素 |
+| nodeDblclick | 节点双击事件 | (event: DragEvent, data: any, nodeElement: HTMLElement) 分别为事件数据，节点数据，节点元素 |
 | nodeRightClick | 节点右键点击事件 | (event: DragEvent, data: any, nodeElement: HTMLElement) 分别为事件数据，节点数据，节点元素 |
 | currentNodeChange | 当前节点改变事件 | (data: any) 节点数据 |
 | start | 拖拽开始事件 | (event: DragEvent, data: any, nodeElement: HTMLElement) 分别为事件数据，节点数据，节点元素 |
@@ -95,9 +96,9 @@ const data = ref<TreeNode[]>([
 | over | 拖拽进入后在节点内持续触发 | (event: DragEvent, data: any, nodeElement: HTMLElement) 分别为事件数据，节点数据，节点元素 |
 | leave | 拖拽离开事件 | (event: DragEvent, data: any, nodeElement: HTMLElement) 分别为事件数据，节点数据，节点元素 |
 | dropped | 节点放下事件 | (event: DragEvent, data: any, nodeElement: HTMLElement) 分别为事件数据，节点数据，节点元素 |
-| droppedBefore | 放在节点前事件 | (dragData: any, dropData: any, index: number) 分别为拖拽节点数据，放下节点数据，移动后节点索引 |
-| droppedIn | 放在节点内事件 | (dragData: any, dropData: any, index: number) 分别为拖拽节点数据，放下节点数据，移动后节点索引 |
-| droppedAfter | 放在节点后事件 | (dragData: any, dropData: any, index: number) 分别为拖拽节点数据，放下节点数据，移动后节点索引 |
+| droppedBefore | 放在节点前事件 | (dragData: any[], dropData: any, done: Function) 分别为拖拽节点数据列表，放下节点数据，回调函数（调用后阻止默认的移动操作） |
+| droppedIn | 放在节点内事件 | (dragData: any[], dropData: any, done: Function) 分别为拖拽节点数据列表，放下节点数据，回调函数（调用后阻止默认的移动操作） |
+| droppedAfter | 放在节点后事件 | (dragData: any[], dropData: any, done: Function) 分别为拖拽节点数据列表，放下节点数据，回调函数（调用后阻止默认的移动操作） |
 | end | 拖拽结束事件 | (event: DragEvent, data: any, nodeElement: HTMLElement) 分别为事件数据，节点数据，节点元素 |
 
 ### 3、方法
@@ -108,14 +109,16 @@ const data = ref<TreeNode[]>([
 | clearMultipleList | 清除选择节点 |  |  |
 | getMoveList| 获取多选列表，多选列表为空时返回元素为当前节点数据的列表 |  |  |
 | filter | 执行过滤 | 接受一个参数并指定为 filter-method 的第一个参数 |  |
-| setCurrentNode | 设置当前选中节点的数据 | (data: any) 节点数据 |  |
-| getCurrentNode | 获取当前选中节点的数据 |  |  |
+| setCurrentData | 设置当前选中节点的数据 | (data: any) 节点数据 |  |
+| getCurrentData | 获取当前选中节点的数据 |  |  |
 | findNodeById | 通过节点主键值查找节点数据 | (id: any, data?: any[]) 分别为节点主键值，（可选）查找的节点数据 |  |
 | findParentById | 通过节点主键值查找父节点数据，没有则返回 null | (id: any, data?: any[]) 分别为节点主键值，（可选）查找的节点数据 |  |
 | safeFindParentById | 通过节点主键值查找父节点数据，没有则返回 children 为根列表的节点数据 | (id: any) 节点主键值 |  |
-| moveBefore | 移动到节点前 | (dragData: any, dropData: any) 分别为拖拽节点数据，放下节点数据 | 移动后的节点索引 |
-| moveIn | 移动到节点内 | (dragData: any, dropData: any) 分别为拖拽节点数据，放下节点数据 | 移动后的节点索引 |
-| moveAfter | 移动到节点后 | (dragData: any, dropData: any) 分别为拖拽节点数据，放下节点数据 | 移动后的节点索引 |
+| removeData | 移除节点 | (dataList: any[]) 节点数据列表 |  |
+| addData | 添加节点 | (dataList: any[], parentData: any, insertIndex = 0) 分别为节点数据列表，父节点数据，插入的下标（默认0） |  |
+| moveBefore | 移动到节点前 | (dragData: any[], dropData: any) 分别为拖拽节点数据列表，放下节点数据 | 移动后的节点索引 |
+| moveIn | 移动到节点内 | (dragData: any[], dropData: any) 分别为拖拽节点数据列表，放下节点数据 | 移动后的节点索引 |
+| moveAfter | 移动到节点后 | (dragData: any[], dropData: any) 分别为拖拽节点数据列表，放下节点数据 | 移动后的节点索引 |
 
 ### 4、插槽
 
