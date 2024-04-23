@@ -4,10 +4,13 @@
     "keywords": [
         "vue3",
         "tree",
-        "project-tree"
+        "project-tree",
+        "vue-project-tree",
+        "draggable",
+        "sortable"
     ],
     "description": "使用 Vue3 + TS 实现的树形结构展示组件，有拖拽、排序、自定义图标等功能",
-    "version": "1.0.6",
+    "version": "1.0.7",
     "license": "MIT",
     "homepage": "https://github.com/one-ccs/vue-project-tree",
     "repository": {

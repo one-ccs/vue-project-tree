@@ -140,6 +140,10 @@ const emit = defineEmits<{
     (e: "end", event: DragEvent, data: any, nodeElement: HTMLElement): void,
 }>();
 
+// 当前节点改变事件
+const onCurrentNodeChange = (data: any) => {
+    emit("currentNodeChange", data);
+};
 // 展开节点图标点击事件
 const onExpandClick = (event: MouseEvent, data: any, nodeElement: HTMLElement) => {
     data._isExpanded = !safeBoolean(data._isExpanded, true);
@@ -180,11 +184,8 @@ const onNodeDblclick = (event: MouseEvent, data: any, nodeElement: HTMLElement) 
 };
 // 节点右键单击事件
 const onNodeRightClick = (event: MouseEvent, data: any, nodeElement: HTMLElement) => {
+    setCurrentData(data);
     emit("nodeRightClick", event, data, nodeElement);
-};
-// 当前节点改变事件
-const onCurrentNodeChange = (data: any) => {
-    emit("currentNodeChange", data);
 };
 // 节点拖拽开始事件
 const onDragStart = (event: DragEvent, data: any, nodeElement: HTMLElement) => {
