@@ -248,7 +248,7 @@ const safeBoolean = (value: any, _default = false): boolean => {
         display: flex;
         flex-direction: row;
         align-items: center;
-        justify-content: center;
+        justify-content: flex-start;
         color: var(--color);
         height: var(--node-height);
         background-color: var(--bg-color);
