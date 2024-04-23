@@ -134,9 +134,9 @@ const emit = defineEmits<{
     (e: "over", event: DragEvent, data: any, nodeElement: HTMLElement): void,
     (e: "leave", event: DragEvent, data: any, nodeElement: HTMLElement): void,
     (e: "dropped", event: DragEvent, data: any, nodeElement: HTMLElement): void,
-    (e: "droppedBefore", dragData: any[], dropData: any, done: Function): void,
-    (e: "droppedIn", dragData: any[], dropData: any, done: Function): void,
-    (e: "droppedAfter", dragData: any[], dropData: any, done: Function): void,
+    (e: "droppedBefore", dragData: any[], dropData: any, preventDefault: Function, _default: Function): void,
+    (e: "droppedIn", dragData: any[], dropData: any, preventDefault: Function, _default: Function): void,
+    (e: "droppedAfter", dragData: any[], dropData: any, preventDefault: Function, _default: Function): void,
     (e: "end", event: DragEvent, data: any, nodeElement: HTMLElement): void,
 }>();
 
@@ -153,7 +153,8 @@ const onNodeClick = (event: MouseEvent, data: any, nodeElement: HTMLElement) => 
         // 选中上次点击元素
         if (_isMultipleStart) {
             _isMultipleStart = false;
-            _lastClickData._isChecked = true;
+
+            safeVolume(_lastClickData, "_isChecked", true);
             _multipleList.push(_lastClickData);
         };
         // 选中当前元素
@@ -269,30 +270,30 @@ const onDropped = (event: DragEvent, data: any, nodeElement: HTMLElement) => {
 };
 // 节点拖拽放到节点前事件
 const onDroppedBefore = (dragData: any[], dropData: any) => {
-    let done = false;
+    let preventDefault = false;
+    const _default = () => moveBefore(dragData, dropData);
 
-    emit("droppedBefore", dragData, dropData, () => done = true);
-    if (done) return;
+    emit("droppedBefore", dragData, dropData, () => preventDefault = true, _default);
 
-    moveBefore(dragData, dropData);
+    !preventDefault && _default();
 };
 // 节点拖拽放到节点内事件
 const onDroppedIn = (dragData: any[], dropData: any) => {
-    let done = false;
+    let preventDefault = false;
+    const _default = () => moveIn(dragData, dropData);
 
-    emit("droppedIn", dragData, dropData, () => done = true);
-    if (done) return;
+    emit("droppedIn", dragData, dropData, () => preventDefault = true, _default);
 
-    moveIn(dragData, dropData);
+    !preventDefault && _default();
 };
 // 节点拖拽放到节点后事件
 const onDroppedAfter = (dragData: any[], dropData: any) => {
-    let done = false;
+    let preventDefault = false;
+    const _default = () => moveAfter(dragData, dropData);
 
-    emit("droppedAfter", dragData, dropData, () => done = true);
-    if (done) return;
+    emit("droppedAfter", dragData, dropData, () => preventDefault = true, _default);
 
-    moveAfter(dragData, dropData);
+    !preventDefault && _default();
 };
 // 节点拖拽结束事件
 const onDragEnd = (event: DragEvent, data: any, nodeElement: HTMLElement) => {
@@ -498,11 +499,11 @@ const safeBoolean = (value: any, _default = false): boolean => {
     return !!value;
 };
 /**
- * 安全的复制
+ * 安全的赋值
  * @param value 值
  */
 const safeVolume = (object: any, property: string, value: any) => {
-    object && object[property] && (object[property] = value);
+    object && typeof object === "object" && (object[property] = value);
 };
 </script>
 
@@ -510,9 +511,7 @@ const safeVolume = (object: any, property: string, value: any) => {
 .vue-project-tree {
     --indent-width: v-bind(_indent);
     --node-height: v-bind(_nodeHeight);
-    position: relative;
     width: 100%;
     height: 100%;
-    overflow: auto;
 }
 </style>

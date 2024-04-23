@@ -15,7 +15,7 @@ const data = ref<TreeNode[]>([
         children: [
             {
                 id: 2,
-                label: "2",
+                label: "2 延迟异步放入",
                 children: [
                     {
                         id: 3,
@@ -29,7 +29,7 @@ const data = ref<TreeNode[]>([
             },
             {
                 id: 5,
-                label: "5",
+                label: "5 取消默认的移动操作",
             },
         ],
     },
@@ -57,6 +57,23 @@ const allowDrop = (data: any) => {
     if (data.id === 7) return false;
     return true;
 };
+const onDroppedIn = async (dragData: any, dropData: any, preventDefault: Function, _default: Function) => {
+    !!dragData;
+    if (dropData.id === 2) {
+        // 取消默认移动操作
+        preventDefault();
+        // 模拟异步
+        let flag = await new Promise(resolve => {
+            setTimeout(() => {
+                resolve(true);
+            }, 1000);
+        });
+        if (flag) _default();
+    }
+    if (dropData.id === 5) {
+        preventDefault();
+    }
+};
 </script>
 
 <template>
@@ -69,6 +86,7 @@ const allowDrop = (data: any) => {
             sortable
             :allow-drag="allowDrag"
             :allow-drop="allowDrop"
+            @dropped-in="onDroppedIn"
         >
         </vue-project-tree>
     </div>
