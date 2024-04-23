@@ -119,6 +119,9 @@ let _isMultipleStart = true;
 let _lastClickData = <any>null;
 // 多选列表（多选元素的 data）
 let _multipleList = <any>[];
+// 在节点内悬停的时间
+const expandHoverTime = 380;
+let _lastTimeStamp = 0;
 
 /* 注意：以下事件已经冒泡到顶层，仅触发一次 */
 const emit = defineEmits<{
@@ -193,8 +196,7 @@ const onDragStart = (event: DragEvent, data: any, nodeElement: HTMLElement) => {
 };
 // 节点拖拽进入事件
 const onDragEnter = (event: DragEvent, data: any, nodeElement: HTMLElement) => {
-    // 自动展开下级节点
-    if (data[props.childrenKey]?.length) data._isExpanded = true;
+    _lastTimeStamp = event.timeStamp;
     // 记录目标节点
     _dropTargetData.value = data;
     _dropTargetElement.value = nodeElement;
@@ -202,8 +204,16 @@ const onDragEnter = (event: DragEvent, data: any, nodeElement: HTMLElement) => {
 };
 // 节点拖拽 over 事件
 const onDragOver = (event: DragEvent, data: any, nodeElement: HTMLElement) => {
+    // 自动展开下级节点
+    if (
+        !safeBoolean(data._isExpanded, true) &&
+        event.timeStamp - _lastTimeStamp >= expandHoverTime &&
+        data[props.childrenKey]?.length
+    ) data._isExpanded = true;
+
     // 阻止默认事件，防止样式不生效
     event.preventDefault();
+
     // 拖动视觉提示
     if (!getMoveList().includes(data)) {
         // 修改放下提示效果、鼠标样式
