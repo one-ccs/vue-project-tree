@@ -8,6 +8,7 @@ interface TreeNode {
     children?: TreeNode[];
 };
 
+const treeRef = ref<any>(null);
 const data = ref<TreeNode[]>([
     {
         id: 1,
@@ -59,6 +60,16 @@ const allowDrop = (data: any) => {
 };
 const onDroppedIn = async (dragData: any, dropData: any, preventDefault: Function, _default: Function) => {
     !!dragData;
+    if (dragItem) {
+        preventDefault();
+        if (!dropData.children) dropData.children = [];
+
+        dropData.children.push({
+            id: Math.random(),
+            label: `item ${dragItem}`,
+        });
+        return;
+    }
     if (dropData.id === 2) {
         // 取消默认移动操作
         preventDefault();
@@ -74,14 +85,25 @@ const onDroppedIn = async (dragData: any, dropData: any, preventDefault: Functio
         preventDefault();
     }
 };
+
+let dragItem = <number | null>null;
 </script>
 
 <template>
-    <div class="tree">
+    <div class="wrapper">
+        <span
+            class="item"
+            v-for="i in [1,2,3,4,5]"
+            draggable="true"
+            @dragstart="dragItem = i, treeRef.setCurrentData(null)"
+            @dragend="dragItem = null"
+        >{{ i }}</span>
         <vue-project-tree
+            ref="treeRef"
             :data="data"
             node-icon
             @current-node-change="onCurrentNodeChange"
+            :highlight-current="false"
             draggable
             sortable
             :allow-drag="allowDrag"
@@ -92,13 +114,25 @@ const onDroppedIn = async (dragData: any, dropData: any, preventDefault: Functio
     </div>
 </template>
 
-<style>
+<style lang="less">
 html, body {
     margin: 0;
     width: 100%;
     height: 100%;
 }
-.tree {
+.wrapper {
     padding: 8px;
+
+    .item {
+        margin-right: 8px;
+        border-radius: 8px;
+        padding: 3px 8px;
+        background-color: #fff;
+        box-shadow: 0 0 6px -2px #333;
+    }
+    .vue-project-tree {
+        margin-top: 12px;
+        border-top: 1px solid #000;
+    }
 }
 </style>
