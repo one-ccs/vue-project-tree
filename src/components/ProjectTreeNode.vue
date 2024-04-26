@@ -2,7 +2,7 @@
     <div
         class="project-tree-node"
         :class="{
-            'is-current': currentNode[idKey] === data[idKey],
+            'is-current': highlightCurrent && currentNode[idKey] === data[idKey],
             'is-expanded': safeBoolean(data._isExpanded, true),
             'is-checked': safeBoolean(data._isChecked),
         }"
@@ -25,6 +25,7 @@
             <div class="project-tree-node-line" v-for="_ in level" />
             <div
                 class="project-tree-icon project-tree-expand-icon"
+                v-if="expandIcon"
                 :style="{ visibility: data[childrenKey]?.length ? 'visible' : 'hidden'}"
                 @click="onExpandClick($event, data, projectTreeNodeRef)"
             >
@@ -69,7 +70,9 @@
                         :label-key="labelKey"
                         :children-key="childrenKey"
                         :current-node="currentNode"
+                        :highlight-current="highlightCurrent"
                         :level="level + 1"
+                        :expand-icon="expandIcon"
                         :expand-icon-size="expandIconSize"
                         :node-icon="nodeIcon"
                         :node-icon-size="nodeIconSize"
@@ -109,7 +112,9 @@ const props = defineProps<{
     labelKey: string;
     childrenKey: string;
     currentNode: any;
+    highlightCurrent?: boolean;
     level: number;
+    expandIcon: boolean,
     expandIconSize: number | string;
     nodeIcon: boolean;
     nodeIconSize: number | string;
@@ -124,7 +129,9 @@ const {
     labelKey,
     childrenKey,
     currentNode,
+    highlightCurrent,
     level,
+    expandIcon,
     expandIconSize,
     nodeIcon,
     nodeIconSize,

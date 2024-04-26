@@ -9,7 +9,9 @@
             :label-key="props.labelKey"
             :children-key="props.childrenKey"
             :current-node="currentData"
+            :highlight-current="props.highlightCurrent"
             :level="0"
+            :expand-icon="props.expandIcon"
             :expand-icon-size="_expandIconSize"
             :node-icon="props.nodeIcon"
             :node-icon-size="_nodeIconSize"
@@ -52,6 +54,8 @@ interface Props {
     childrenKey?: string;
     indent?: number | string;
     nodeHeight?: number | string;
+    highlightCurrent?: boolean;
+    expandIcon?: boolean;
     expandIconSize?: number | string;
     nodeIcon?: boolean;
     nodeIconSize?: number | string;
@@ -69,6 +73,8 @@ const props = withDefaults(defineProps<Props>(), {
     childrenKey: "children",
     indent: 24,
     nodeHeight: 35,
+    highlightCurrent: true,
+    expandIcon: true,
     expandIconSize: 12,
     nodeIcon: false,
     nodeIconSize: 20,

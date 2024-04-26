@@ -69,19 +69,21 @@ const data = ref<TreeNode[]>([
 | 名称 | 说明 | 类型| 默认值 |
 | --- | --- | --- | --- |
 | data | 树形数据，最外层必须是数组 | `Array` |  |
-| idKey? | 主键属性名（值在树中必须唯一） | `string` | "id" |
-| labelKey? | 标签属性名 | `string` | "label" |
-| childrenKey? | 子节点数组属性名 | `string` | "children" |
-| indent? | 左侧缩进值 | `number \| string` | 24 |
-| nodeHeight? | 节点高度 | `number \| string` | 35 |
-| expandIconSize? | 展开图标大小 | `number \| string` | 10 |
-| nodeIcon? | 是否显示节点图标 | `boolean` | false |
-| nodeIconSize? | 节点图标大小 | `number \| string` | 20 |
-| filterMethod? | 过滤方法（需手动调用 filter 函数执行过滤） | `Function` | () => true |
-| draggable? | 是否允许拖拽 | `boolean` | false |
-| sortable? | 是否允许排序 | `boolean` | false |
-| allowDrag? | 节点是否拖拽放下处理函数（返回 true 表示允许拖拽） | `Function` | () => false |
-| allowDrop? | 节点是否允许放下处理函数（返回 true 表示允许放下） | `Function` | () => false |
+| idKey? | 主键属性名（值在树中必须唯一） | `string` | `"id"` |
+| labelKey? | 标签属性名 | `string` | `"label"` |
+| childrenKey? | 子节点数组属性名 | `string` | `"children"` |
+| indent? | 左侧缩进值 | `number \| string` | `24` |
+| nodeHeight? | 节点高度 | `number \| string` | `35` |
+| highlightCurrent? | 是否高亮当前选中节点 | `boolean` | `true` |
+| expandIcon? | 是否显示展开图标 | `boolean` | `true` |
+| expandIconSize? | 展开图标大小 | `number \| string` | `10` |
+| nodeIcon? | 是否显示节点图标 | `boolean` | `false` |
+| nodeIconSize? | 节点图标大小 | `number \| string` | `20` |
+| filterMethod? | 过滤方法（需手动调用 `filter` 函数执行过滤） | `Function` | `() => true` |
+| draggable? | 是否允许拖拽 | `boolean` | `false` |
+| sortable? | 是否允许排序 | `boolean` | `false` |
+| allowDrag? | 节点是否拖拽放下处理函数（返回 `true` 表示允许拖拽） | `Function` | `() => false` |
+| allowDrop? | 节点是否允许放下处理函数（返回 `true` 表示允许放下） | `Function` | `() => false` |
 
 ### 2、事件
 
