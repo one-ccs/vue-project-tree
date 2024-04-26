@@ -74,7 +74,7 @@ const data = ref<TreeNode[]>([
 | childrenKey? | 子节点数组属性名 | `string` | `"children"` |
 | indent? | 左侧缩进值 | `number \| string` | `24` |
 | nodeHeight? | 节点高度 | `number \| string` | `35` |
-| highlightCurrent? | 是否高亮当前选中节点 | `boolean` | `true` |
+| highlightCurrent? | 是否高亮当前选中节点（当值为 `false` 时不会自动更新当前选中节点、不会触发 `currentNodeChange` 事件） | `boolean` | `true` |
 | expandIcon? | 是否显示展开图标 | `boolean` | `true` |
 | expandIconSize? | 展开图标大小 | `number \| string` | `10` |
 | nodeIcon? | 是否显示节点图标 | `boolean` | `false` |

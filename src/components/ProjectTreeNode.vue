@@ -2,7 +2,7 @@
     <div
         class="project-tree-node"
         :class="{
-            'is-current': highlightCurrent && currentNode[idKey] === data[idKey],
+            'is-current': currentNode[idKey] === data[idKey],
             'is-expanded': safeBoolean(data._isExpanded, true),
             'is-checked': safeBoolean(data._isChecked),
         }"

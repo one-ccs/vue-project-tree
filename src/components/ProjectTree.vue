@@ -88,7 +88,7 @@ const props = withDefaults(defineProps<Props>(), {
 if (!Array.isArray(props.data)) console.error("ProjectTree 绑定的参数 data 必须为数组类型");
 
 // 当前选中节点
-const currentData = ref(props.data[0]);
+const currentData = ref(props.highlightCurrent ? props.data[0] : null);
 
 // 格式化缩进
 const _indent = computed(() => {
@@ -348,6 +348,7 @@ const filter = (value: any, _data: any) => {
  * @param data 节点数据
  */
 const setCurrentData = (data: any) => {
+    if (!props.highlightCurrent) return;
     currentData.value = data;
     onCurrentNodeChange(data);
 };
