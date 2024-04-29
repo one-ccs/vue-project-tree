@@ -113,7 +113,7 @@ const data = ref<TreeNode[]>([
 | filter | 执行过滤 | 接受一个参数并指定为 filter-method 的第一个参数 |  |
 | setCurrentData | 设置当前选中节点的数据 | (data: any) 节点数据 |  |
 | getCurrentData | 获取当前选中节点的数据 |  |  |
-| findNodeById | 通过节点主键值查找节点数据 | (id: any, data?: any[]) 分别为节点主键值，（可选）查找的节点数据 |  |
+| findById | 通过节点主键值查找节点数据 | (id: any, data?: any[]) 分别为节点主键值，（可选）查找的节点数据 |  |
 | findParentById | 通过节点主键值查找父节点数据，没有则返回 null | (id: any, data?: any[]) 分别为节点主键值，（可选）查找的节点数据 |  |
 | safeFindParentById | 通过节点主键值查找父节点数据，没有则返回 children 为根列表的节点数据 | (id: any) 节点主键值 |  |
 | removeData | 移除节点 | (dataList: any[]) 节点数据列表 |  |

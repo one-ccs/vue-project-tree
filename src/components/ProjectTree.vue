@@ -1,9 +1,16 @@
 <template>
-    <div class="vue-project-tree" ref="projectTreeRef">
+    <div
+        class="vue-project-tree"
+        ref="projectTreeRef"
+        v-if="
+            Array.isArray(props.data) ?
+                true :
+                (console.error(`ProjectTree 绑定的参数 data (${props.data}) 必须为数组类型`), false)
+        "
+    >
         <project-tree-node
-            v-if="Array.isArray(props.data)"
             v-for="node in props.data"
-            :key="node[props.idKey]"
+            :key="node"
             :data="node"
             :id-key="props.idKey"
             :label-key="props.labelKey"
@@ -84,8 +91,6 @@ const props = withDefaults(defineProps<Props>(), {
     allowDrag: () => true,
     allowDrop: () => true,
 });
-
-if (!Array.isArray(props.data)) console.error("ProjectTree 绑定的参数 data 必须为数组类型");
 
 // 当前选中节点
 const currentData = ref(props.data[0]);
@@ -362,13 +367,14 @@ const getCurrentData = () => {
  * @param id 节点主键值
  * @param data (可选)查找的节点数据
  */
-const findNodeById = (id: any, data?: any[]): any | null => {
+const findById = (id: any, data?: any[]): any | null => {
     if (!data) data = props.data;
 
     for (const _data of data) {
-        if (_data[props.idKey as any] === id) return _data;
-        if (_data[props.childrenKey as any]?.length) {
-            const foundData = findNodeById(id, _data[props.childrenKey]);
+        if (!_data) continue;
+        if (_data[props.idKey] === id) return _data;
+        if (_data[props.childrenKey]?.length) {
+            const foundData = findById(id, _data[props.childrenKey]);
             if (foundData) return foundData;
         }
     }
@@ -383,8 +389,9 @@ const findParentById = (id: any, data?: any[], parent?: any): any | null | undef
     if (!data) data = props.data;
 
     for (const _data of data) {
-        if (_data[props.idKey as any] === id) return parent;
-        if (_data[props.childrenKey as any]?.length) {
+        if (!_data) continue;
+        if (_data[props.idKey] === id) return parent;
+        if (_data[props.childrenKey]?.length) {
             const foundData = findParentById(id, _data[props.childrenKey], _data);
             if (foundData) return foundData;
         }
@@ -396,14 +403,18 @@ const findParentById = (id: any, data?: any[], parent?: any): any | null | undef
  * 若为根节点列表的数据，则返回 children 为根列表的节点数据
  * @param id 节点主键值
  */
-const safeFindParentById = (id: any) => {
+const safeFindParentById = (id: any, _defaultParent?: any): any | null => {
     let data = findParentById(id);
 
     if (data === undefined) {
         data = <any>{};
-        data[props.childrenKey] = props.data;
+        data[props.childrenKey] = _defaultParent ? _defaultParent : props.data;
     }
-    if (data === null) console.warn("safeFindParentById 未找到父节点")
+    if (data === null) {
+        console.warn("safeFindParentById 未找到父节点");
+        data = <any>{};
+        data[props.childrenKey] = _defaultParent || null;
+    }
     return data;
 };
 
@@ -413,7 +424,8 @@ const safeFindParentById = (id: any) => {
  */
 const removeData = (dataList: any[]) => {
     dataList.forEach((data: any) => {
-        const dataParent = safeFindParentById(data[props.idKey]);
+        const dataParent = data && safeFindParentById(data[props.idKey]);
+        if (!dataParent) return;
         const dataIndex = dataParent[props.childrenKey].indexOf(data);
 
         dataParent[props.childrenKey].splice(dataIndex, 1);
@@ -428,7 +440,7 @@ const removeData = (dataList: any[]) => {
 const addData = (dataList: any[], parentData: any, insertIndex = 0) => {
     if (!parentData[props.childrenKey]?.length) parentData[props.childrenKey] = [];
 
-    parentData[props.childrenKey].splice(insertIndex, 0, ...dataList);
+    parentData[props.childrenKey].splice(insertIndex, 0, ...dataList.filter((data: any) => !!data));
 };
 /**
  * 移动到节点前
@@ -437,11 +449,13 @@ const addData = (dataList: any[], parentData: any, insertIndex = 0) => {
  * @returns 移动后的节点索引
  */
  const moveBefore = (dragData: any[], dropData: any): number => {
+    const dropParent = safeFindParentById(dropData[props.idKey]);
+    if (!dropParent) return -1;
+    const dropIndex = dropParent[props.childrenKey].indexOf(dropData);
+
     // 移除旧节点
     removeData(dragData);
     // 添加新节点
-    const dropParent = safeFindParentById(dropData[props.idKey]);
-    const dropIndex = dropParent[props.childrenKey].indexOf(dropData);
     addData(dragData, dropParent, dropIndex);
 
     return dropIndex;
@@ -453,10 +467,11 @@ const addData = (dataList: any[], parentData: any, insertIndex = 0) => {
  * @returns 移动后的节点索引
  */
 const moveIn = (dragData: any[], dropData: any): number => {
+    const insertIndex = dropData[props.childrenKey]?.length || 0;
+
     // 移除旧节点
     removeData(dragData);
     // 添加新节点
-    const insertIndex = dropData[props.childrenKey]?.length || 0;
     addData(dragData, dropData, insertIndex);
 
     return insertIndex;
@@ -468,11 +483,13 @@ const moveIn = (dragData: any[], dropData: any): number => {
  * @returns 移动后的节点索引
  */
 const moveAfter = (dragData: any[], dropData: any) => {
+    const dropParent = safeFindParentById(dropData[props.idKey]);
+    if (!dropParent) return;
+    const dropIndex = dropParent[props.childrenKey].indexOf(dropData) + 1;
+
     // 移除旧节点
     removeData(dragData);
     // 添加新节点
-    const dropParent = safeFindParentById(dropData[props.idKey]);
-    const dropIndex = dropParent[props.childrenKey].indexOf(dropData) + 1;
     addData(dragData, dropParent, dropIndex);
 
     return dropIndex;
@@ -486,7 +503,7 @@ defineExpose({
     filter,
     setCurrentData,
     getCurrentData,
-    findNodeById,
+    findById,
     findParentById,
     safeFindParentById,
     removeData,

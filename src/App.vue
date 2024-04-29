@@ -9,7 +9,7 @@ interface TreeNode {
 };
 
 const treeRef = ref<any>(null);
-const data = ref<TreeNode[]>([
+const treeData = ref<TreeNode[]>([
     {
         id: 1,
         label: "1 不允许拖拽",
@@ -43,7 +43,7 @@ const data = ref<TreeNode[]>([
         label: "7 不允许拖拽、放下",
     },
 ]);
-const currentNode = ref(data.value[0]);
+const currentNode = ref(treeData.value[0]);
 
 const onCurrentNodeChange = (data: any) => {
     currentNode.value = data;
@@ -100,7 +100,7 @@ let dragItem = <number | null>null;
         >{{ i }}</span>
         <vue-project-tree
             ref="treeRef"
-            :data="data"
+            :data="treeData"
             node-icon
             @current-node-change="onCurrentNodeChange"
             :highlight-current="false"

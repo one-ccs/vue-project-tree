@@ -6,6 +6,7 @@
             'is-expanded': safeBoolean(data._isExpanded, true),
             'is-checked': safeBoolean(data._isChecked),
         }"
+        v-if="data ? true : (console.warn(`未渲染节点, 无效的节点数据(${data})`), false)"
         v-show="safeBoolean(data._isVisible, true)"
         ref="projectTreeNodeRef"
         :draggable="safeBoolean(draggable && allowDrag(data))"
@@ -63,39 +64,42 @@
                     class="project-tree-node__children"
                     v-show="safeBoolean(data._isExpanded, true)"
                 >
-                    <project-tree-node
-                        v-for="node in data[childrenKey]"
-                        :key="node[idKey]" :data="node"
-                        :id-key="idKey"
-                        :label-key="labelKey"
-                        :children-key="childrenKey"
-                        :current-node="currentNode"
-                        :highlight-current="highlightCurrent"
-                        :level="level + 1"
-                        :expand-icon="expandIcon"
-                        :expand-icon-size="expandIconSize"
-                        :node-icon="nodeIcon"
-                        :node-icon-size="nodeIconSize"
-                        @expand-click="onExpandClick"
-                        @node-click.self="onNodeClick"
-                        @node-dblclick="onNodeDblclick"
-                        @node-right-click="onNodeRightClick" :draggable="draggable"
-                        :allow-drag="allowDrag"
-                        :allow-drop="allowDrop"
-                        @start="onDragStart"
-                        @enter="onDragEnter"
-                        @leave="onDragLeave"
-                        @over="onDragOver"
-                        @dropped="onDropped"
-                        @end="onDragEnd"
-                    >
-                        <template #expandIcon="slotProps: { data : any, size: number }">
-                            <slot name="expandIcon" :data="slotProps.data" :size="slotProps.size"></slot>
-                        </template>
-                        <template #nodeIcon="slotProps: { data : any, size: number }">
-                            <slot name="nodeIcon" :data="slotProps.data" :size="slotProps.size"></slot>
-                        </template>
-                    </project-tree-node>
+                    <template v-for="node in data[childrenKey]">
+                        <project-tree-node
+                            v-if="node"
+                            :key="node"
+                            :data="node"
+                            :id-key="idKey"
+                            :label-key="labelKey"
+                            :children-key="childrenKey"
+                            :current-node="currentNode"
+                            :highlight-current="highlightCurrent"
+                            :level="level + 1"
+                            :expand-icon="expandIcon"
+                            :expand-icon-size="expandIconSize"
+                            :node-icon="nodeIcon"
+                            :node-icon-size="nodeIconSize"
+                            @expand-click="onExpandClick"
+                            @node-click.self="onNodeClick"
+                            @node-dblclick="onNodeDblclick"
+                            @node-right-click="onNodeRightClick" :draggable="draggable"
+                            :allow-drag="allowDrag"
+                            :allow-drop="allowDrop"
+                            @start="onDragStart"
+                            @enter="onDragEnter"
+                            @leave="onDragLeave"
+                            @over="onDragOver"
+                            @dropped="onDropped"
+                            @end="onDragEnd"
+                        >
+                            <template #expandIcon="slotProps: { data : any, size: number }">
+                                <slot name="expandIcon" :data="slotProps.data" :size="slotProps.size"></slot>
+                            </template>
+                            <template #nodeIcon="slotProps: { data : any, size: number }">
+                                <slot name="nodeIcon" :data="slotProps.data" :size="slotProps.size"></slot>
+                            </template>
+                        </project-tree-node>
+                    </template>
                 </div>
             </expand-transition>
         </template>
