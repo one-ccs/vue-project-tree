@@ -115,7 +115,7 @@ const data = ref<TreeNode[]>([
 | getCurrentData | 获取当前选中节点的数据 |  |  |
 | findById | 通过节点主键值查找节点数据 | (id: any, data?: any[]) 分别为节点主键值，（可选）查找的节点数据 |  |
 | findParentById | 通过节点主键值查找父节点数据，没有则返回 null | (id: any, data?: any[]) 分别为节点主键值，（可选）查找的节点数据 |  |
-| safeFindParentById | 通过节点主键值查找父节点数据，没有则返回 children 为根列表的节点数据 | (id: any) 节点主键值 |  |
+| safeFindParentById | 通过节点主键值查找父节点数据，没有则返回 children 为根列表的节点数据 | (id: any, _defaultParent?: any) 分别为节点主键值，未找到父节点时作为默认父节点的数据 |  |
 | removeData | 移除节点 | (dataList: any[]) 节点数据列表 |  |
 | addData | 添加节点 | (dataList: any[], parentData: any, insertIndex = 0) 分别为节点数据列表，父节点数据，插入的下标（默认0） |  |
 | moveBefore | 移动到节点前 | (dragData: any[], dropData: any) 分别为拖拽节点数据列表，放下节点数据 | 移动后的节点索引 |

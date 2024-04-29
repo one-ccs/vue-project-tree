@@ -402,6 +402,7 @@ const findParentById = (id: any, data?: any[], parent?: any): any | null | undef
  * 通过节点主键值查找父节点数据
  * 若为根节点列表的数据，则返回 children 为根列表的节点数据
  * @param id 节点主键值
+ * @param _defaultParent 未找到父节点时作为默认父节点的数据
  */
 const safeFindParentById = (id: any, _defaultParent?: any): any | null => {
     let data = findParentById(id);
@@ -411,9 +412,12 @@ const safeFindParentById = (id: any, _defaultParent?: any): any | null => {
         data[props.childrenKey] = _defaultParent ? _defaultParent : props.data;
     }
     if (data === null) {
-        console.warn("safeFindParentById 未找到父节点");
+        if (!_defaultParent) {
+            console.warn("safeFindParentById 未找到父节点且未提供默认父节点");
+            return null;
+        }
         data = <any>{};
-        data[props.childrenKey] = _defaultParent || null;
+        data[props.childrenKey] = _defaultParent;
     }
     return data;
 };
@@ -426,9 +430,9 @@ const removeData = (dataList: any[]) => {
     dataList.forEach((data: any) => {
         const dataParent = data && safeFindParentById(data[props.idKey]);
         if (!dataParent) return;
-        const dataIndex = dataParent[props.childrenKey].indexOf(data);
+        const dataIndex = dataParent[props.childrenKey]?.indexOf(data);
 
-        dataParent[props.childrenKey].splice(dataIndex, 1);
+        dataParent[props.childrenKey]?.splice(dataIndex, 1);
     });
 };
 /**
@@ -440,7 +444,7 @@ const removeData = (dataList: any[]) => {
 const addData = (dataList: any[], parentData: any, insertIndex = 0) => {
     if (!parentData[props.childrenKey]?.length) parentData[props.childrenKey] = [];
 
-    parentData[props.childrenKey].splice(insertIndex, 0, ...dataList.filter((data: any) => !!data));
+    parentData[props.childrenKey]?.splice(insertIndex, 0, ...dataList.filter((data: any) => !!data));
 };
 /**
  * 移动到节点前
@@ -451,7 +455,7 @@ const addData = (dataList: any[], parentData: any, insertIndex = 0) => {
  const moveBefore = (dragData: any[], dropData: any): number => {
     const dropParent = safeFindParentById(dropData[props.idKey]);
     if (!dropParent) return -1;
-    const dropIndex = dropParent[props.childrenKey].indexOf(dropData);
+    const dropIndex = dropParent[props.childrenKey]?.indexOf(dropData);
 
     // 移除旧节点
     removeData(dragData);
@@ -485,7 +489,7 @@ const moveIn = (dragData: any[], dropData: any): number => {
 const moveAfter = (dragData: any[], dropData: any) => {
     const dropParent = safeFindParentById(dropData[props.idKey]);
     if (!dropParent) return;
-    const dropIndex = dropParent[props.childrenKey].indexOf(dropData) + 1;
+    const dropIndex = dropParent[props.childrenKey]?.indexOf(dropData) + 1;
 
     // 移除旧节点
     removeData(dragData);
