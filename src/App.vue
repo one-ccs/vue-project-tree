@@ -58,8 +58,10 @@ const allowDrop = (data: any) => {
     if (data.id === 7) return false;
     return true;
 };
-const onDroppedIn = async (dragData: any, dropData: any, preventDefault: Function, _default: Function) => {
+const onDroppedIn = async (event: DragEvent, dragData: any, dropData: any, preventDefault: Function, _default: Function) => {
+    !!event;
     !!dragData;
+
     if (dragItem) {
         preventDefault();
         if (!dropData.children) dropData.children = [];

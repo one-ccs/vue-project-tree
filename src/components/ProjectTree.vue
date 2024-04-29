@@ -145,9 +145,9 @@ const emit = defineEmits<{
     (e: "over", event: DragEvent, data: any, nodeElement: HTMLElement): void,
     (e: "leave", event: DragEvent, data: any, nodeElement: HTMLElement): void,
     (e: "dropped", event: DragEvent, data: any, nodeElement: HTMLElement): void,
-    (e: "droppedBefore", dragData: any[], dropData: any, preventDefault: Function, _default: Function): void,
-    (e: "droppedIn", dragData: any[], dropData: any, preventDefault: Function, _default: Function): void,
-    (e: "droppedAfter", dragData: any[], dropData: any, preventDefault: Function, _default: Function): void,
+    (e: "droppedBefore", event: DragEvent, dragData: any[], dropData: any, preventDefault: Function, _default: Function): void,
+    (e: "droppedIn", event: DragEvent, dragData: any[], dropData: any, preventDefault: Function, _default: Function): void,
+    (e: "droppedAfter", event: DragEvent, dragData: any[], dropData: any, preventDefault: Function, _default: Function): void,
     (e: "end", event: DragEvent, data: any, nodeElement: HTMLElement): void,
 }>();
 
@@ -266,46 +266,52 @@ const onDragLeave = (event: DragEvent, data: any, nodeElement: HTMLElement) => {
 };
 // 节点拖拽放下事件
 const onDropped = (event: DragEvent, data: any, nodeElement: HTMLElement) => {
+    event.preventDefault();
+
     // 清除拖动视觉提示
     data._isDropBefore = data._isDropIn = data._isDropAfter = false;
+
     // 抛出子事件
     if (props.sortable && event.offsetY <= dropOffset) {
-        onDroppedBefore(getMoveList(), data);
+        onDroppedBefore(event, getMoveList(), data);
     }
     else if (props.sortable && event.offsetY >= parseFloat(props.nodeHeight as string) - dropOffset) {
-        onDroppedAfter(getMoveList(), data);
+        onDroppedAfter(event, getMoveList(), data);
     }
     else if (safeBoolean(props.allowDrop(data))) {
-        onDroppedIn(getMoveList(), data);
+        onDroppedIn(event, getMoveList(), data);
     }
     emit("dropped", event, data, nodeElement);
 };
 // 节点拖拽放到节点前事件
-const onDroppedBefore = (dragData: any[], dropData: any) => {
-    let preventDefault = false;
+const onDroppedBefore = (event: DragEvent, dragData: any[], dropData: any) => {
+    let isPreventDefault = false;
+    const preventDefault = () => isPreventDefault = true;
     const _default = () => moveBefore(dragData, dropData);
 
-    emit("droppedBefore", dragData, dropData, () => preventDefault = true, _default);
+    emit("droppedBefore", event, dragData, dropData, preventDefault, _default);
 
-    !preventDefault && _default();
+    !isPreventDefault && _default();
 };
 // 节点拖拽放到节点内事件
-const onDroppedIn = (dragData: any[], dropData: any) => {
-    let preventDefault = false;
+const onDroppedIn = (event: DragEvent, dragData: any[], dropData: any) => {
+    let isPreventDefault = false;
+    const preventDefault = () => isPreventDefault = true;
     const _default = () => moveIn(dragData, dropData);
 
-    emit("droppedIn", dragData, dropData, () => preventDefault = true, _default);
+    emit("droppedIn", event, dragData, dropData, preventDefault, _default);
 
-    !preventDefault && _default();
+    !isPreventDefault && _default();
 };
 // 节点拖拽放到节点后事件
-const onDroppedAfter = (dragData: any[], dropData: any) => {
-    let preventDefault = false;
+const onDroppedAfter = (event: DragEvent, dragData: any[], dropData: any) => {
+    let isPreventDefault = false;
+    const preventDefault = () => isPreventDefault = true;
     const _default = () => moveAfter(dragData, dropData);
 
-    emit("droppedAfter", dragData, dropData, () => preventDefault = true, _default);
+    emit("droppedAfter", event, dragData, dropData, preventDefault, _default);
 
-    !preventDefault && _default();
+    !isPreventDefault && _default();
 };
 // 节点拖拽结束事件
 const onDragEnd = (event: DragEvent, data: any, nodeElement: HTMLElement) => {
@@ -407,6 +413,7 @@ const findParentById = (id: any, data?: any[], parent?: any): any | null | undef
 const safeFindParentById = (id: any, _defaultParent?: any): any | null => {
     let data = findParentById(id);
 
+    // 根数据不是有效的节点结构，构造一个最简化的树结构
     if (data === undefined) {
         data = <any>{};
         data[props.childrenKey] = _defaultParent ? _defaultParent : props.data;
