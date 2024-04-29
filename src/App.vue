@@ -105,7 +105,6 @@ let dragItem = <number | null>null;
             :data="treeData"
             node-icon
             @current-node-change="onCurrentNodeChange"
-            :highlight-current="false"
             draggable
             sortable
             :allow-drag="allowDrag"

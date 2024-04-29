@@ -2,11 +2,10 @@
     <div
         class="project-tree-node"
         :class="{
-            'is-current': highlightCurrent && currentNode[idKey] === data[idKey],
+            'is-current': highlightCurrent && currentData && currentData[idKey] === data[idKey],
             'is-expanded': safeBoolean(data._isExpanded, true),
             'is-checked': safeBoolean(data._isChecked),
         }"
-        v-if="data ? true : (console.warn(`未渲染节点, 无效的节点数据(${data})`), false)"
         v-show="safeBoolean(data._isVisible, true)"
         ref="projectTreeNodeRef"
         :draggable="safeBoolean(draggable && allowDrag(data))"
@@ -25,8 +24,8 @@
         >
             <div class="project-tree-node-line" v-for="_ in level" />
             <div
-                class="project-tree-icon project-tree-expand-icon"
                 v-if="expandIcon"
+                class="project-tree-icon project-tree-expand-icon"
                 :style="{ visibility: data[childrenKey]?.length ? 'visible' : 'hidden'}"
                 @click="onExpandClick($event, data, projectTreeNodeRef)"
             >
@@ -37,8 +36,8 @@
                 </slot>
             </div>
             <div
-                class="project-tree-icon project-tree-node-icon"
                 v-if="nodeIcon"
+                class="project-tree-icon project-tree-node-icon"
             >
                 <slot name="nodeIcon" :data="data" :size="nodeIconSize">
                     <svg viewBox="0 0 1024 1024" fill="currentColor" :width="nodeIconSize" :height="nodeIconSize">
@@ -64,15 +63,14 @@
                     class="project-tree-node__children"
                     v-show="safeBoolean(data._isExpanded, true)"
                 >
-                    <template v-for="node in data[childrenKey]">
+                    <template v-for="node in data[childrenKey]" :key="node">
                         <project-tree-node
-                            v-if="node"
-                            :key="node"
+                            v-if="node ? true : (console.warn(`未渲染节点, 无效的节点数据(${node})`), false)"
                             :data="node"
                             :id-key="idKey"
                             :label-key="labelKey"
                             :children-key="childrenKey"
-                            :current-node="currentNode"
+                            :current-data="currentData"
                             :highlight-current="highlightCurrent"
                             :level="level + 1"
                             :expand-icon="expandIcon"
@@ -115,7 +113,7 @@ const props = defineProps<{
     idKey: string;
     labelKey: string;
     childrenKey: string;
-    currentNode: any;
+    currentData: any;
     highlightCurrent?: boolean;
     level: number;
     expandIcon: boolean,
@@ -132,7 +130,7 @@ const {
     idKey,
     labelKey,
     childrenKey,
-    currentNode,
+    currentData,
     highlightCurrent,
     level,
     expandIcon,

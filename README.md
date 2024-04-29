@@ -1,5 +1,7 @@
 # vue-project-tree
 
+![预览图](https://img-blog.csdnimg.cn/direct/a2270f23312d45e89610cdb524fb9d41.gif#pic_center)
+
 ## 一、使用
 
 1. 安装

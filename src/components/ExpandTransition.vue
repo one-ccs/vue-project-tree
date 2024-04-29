@@ -42,10 +42,14 @@ const on = {
             el.style.paddingBottom = el.dataset.oldPaddingBottom;
             el.style.overflow = 'hidden';
         });
+        el.dataset.timer = setTimeout(() => {
+            done();
+        }, 3000);
     },
     afterEnter(el: RendererElement) {
         el.style.maxHeight = '';
         el.style.overflow = el.dataset.oldOverflow;
+        el.dataset && el.dataset.timer && clearInterval(el.dataset.timer);
     },
     enterCancelled(el: RendererElement) {
         reset(el);

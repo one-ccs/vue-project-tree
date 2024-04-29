@@ -8,41 +8,42 @@
                 (console.error(`ProjectTree 绑定的参数 data (${props.data}) 必须为数组类型`), false)
         "
     >
-        <project-tree-node
-            v-for="node in props.data"
-            :key="node"
-            :data="node"
-            :id-key="props.idKey"
-            :label-key="props.labelKey"
-            :children-key="props.childrenKey"
-            :current-node="currentData"
-            :highlight-current="props.highlightCurrent"
-            :level="0"
-            :expand-icon="props.expandIcon"
-            :expand-icon-size="_expandIconSize"
-            :node-icon="props.nodeIcon"
-            :node-icon-size="_nodeIconSize"
-            @expand-click="onExpandClick"
-            @node-click="onNodeClick"
-            @node-dblclick="onNodeDblclick"
-            @node-right-click="onNodeRightClick"
-            :draggable="props.draggable"
-            :allow-drag="props.allowDrag"
-            :allow-drop="props.allowDrop"
-            @start="onDragStart"
-            @enter="onDragEnter"
-            @leave="onDragLeave"
-            @over="onDragOver"
-            @dropped="onDropped"
-            @end="onDragEnd"
-        >
-            <template #expandIcon="{ data, size }">
-                <slot name="expandIcon" :data="data" :size="size"></slot>
-            </template>
-            <template #nodeIcon="{ data, size }">
-                <slot name="nodeIcon" :data="data" :size="size"></slot>
-            </template>
-        </project-tree-node>
+        <template v-for="node in props.data" :key="node">
+            <project-tree-node
+                v-if="node ? true : (console.warn(`未渲染节点, 无效的节点数据(${node})`), false)"
+                :data="node"
+                :id-key="props.idKey"
+                :label-key="props.labelKey"
+                :children-key="props.childrenKey"
+                :current-data="currentData"
+                :highlight-current="props.highlightCurrent"
+                :level="0"
+                :expand-icon="props.expandIcon"
+                :expand-icon-size="_expandIconSize"
+                :node-icon="props.nodeIcon"
+                :node-icon-size="_nodeIconSize"
+                @expand-click="onExpandClick"
+                @node-click="onNodeClick"
+                @node-dblclick="onNodeDblclick"
+                @node-right-click="onNodeRightClick"
+                :draggable="props.draggable"
+                :allow-drag="props.allowDrag"
+                :allow-drop="props.allowDrop"
+                @start="onDragStart"
+                @enter="onDragEnter"
+                @leave="onDragLeave"
+                @over="onDragOver"
+                @dropped="onDropped"
+                @end="onDragEnd"
+            >
+                <template #expandIcon="{ data, size }">
+                    <slot name="expandIcon" :data="data" :size="size"></slot>
+                </template>
+                <template #nodeIcon="{ data, size }">
+                    <slot name="nodeIcon" :data="data" :size="size"></slot>
+                </template>
+            </project-tree-node>
+        </template>
     </div>
 </template>
 
