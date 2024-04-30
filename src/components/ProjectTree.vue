@@ -55,6 +55,10 @@ defineOptions({
     name: "VueProjectTree",
 });
 
+export interface DroppedExtraData {
+    type: "dropped" | "before" | "in" | "after";
+};
+
 interface Props {
     data: any[];
     idKey?: string;
@@ -118,6 +122,12 @@ const _nodeIconSize = computed(() => {
 });
 
 const projectTreeRef = ref<any>(null);
+const _virtualRootData = ref<any>({});
+
+_virtualRootData.value[props.idKey] = -2;
+_virtualRootData.value[props.labelKey] = "虚构根节点";
+_virtualRootData.value[props.childrenKey] = props.data;
+
 
 // 放下位置偏移量
 const dropOffset = 8;
@@ -145,7 +155,7 @@ const emit = defineEmits<{
     (e: "enter", event: DragEvent, data: any, nodeElement: HTMLElement): void,
     (e: "over", event: DragEvent, data: any, nodeElement: HTMLElement): void,
     (e: "leave", event: DragEvent, data: any, nodeElement: HTMLElement): void,
-    (e: "dropped", event: DragEvent, data: any, nodeElement: HTMLElement): void,
+    (e: "dropped", event: DragEvent, data: any, nodeElement: HTMLElement, extraData: DroppedExtraData): void,
     (e: "droppedBefore", event: DragEvent, dragData: any[], dropData: any, preventDefault: Function, _default: Function): void,
     (e: "droppedIn", event: DragEvent, dragData: any[], dropData: any, preventDefault: Function, _default: Function): void,
     (e: "droppedAfter", event: DragEvent, dragData: any[], dropData: any, preventDefault: Function, _default: Function): void,
@@ -268,21 +278,27 @@ const onDragLeave = (event: DragEvent, data: any, nodeElement: HTMLElement) => {
 // 节点拖拽放下事件
 const onDropped = (event: DragEvent, data: any, nodeElement: HTMLElement) => {
     event.preventDefault();
+    const extraData = <DroppedExtraData>{
+        type: "dropped",
+    };
 
     // 清除拖动视觉提示
     data._isDropBefore = data._isDropIn = data._isDropAfter = false;
 
     // 抛出子事件
     if (props.sortable && event.offsetY <= dropOffset) {
+        extraData.type = "before";
         onDroppedBefore(event, getMoveList(), data);
     }
     else if (props.sortable && event.offsetY >= parseFloat(props.nodeHeight as string) - dropOffset) {
+        extraData.type = "after";
         onDroppedAfter(event, getMoveList(), data);
     }
     else if (safeBoolean(props.allowDrop(data))) {
+        extraData.type = "in";
         onDroppedIn(event, getMoveList(), data);
     }
-    emit("dropped", event, data, nodeElement);
+    emit("dropped", event, data, nodeElement, extraData);
 };
 // 节点拖拽放到节点前事件
 const onDroppedBefore = (event: DragEvent, dragData: any[], dropData: any) => {
@@ -374,60 +390,36 @@ const getCurrentData = () => {
  * @param id 节点主键值
  * @param data (可选)查找的节点数据
  */
-const findById = (id: any, data?: any[]): any | null => {
-    if (!data) data = props.data;
+const findById = (id: any, data?: any): any | null => {
+    const queue = data ? [...data[props.childrenKey]] : [..._virtualRootData.value[props.childrenKey]];
 
-    for (const _data of data) {
-        if (!_data) continue;
-        if (_data[props.idKey] === id) return _data;
-        if (_data[props.childrenKey]?.length) {
-            const foundData = findById(id, _data[props.childrenKey]);
-            if (foundData) return foundData;
-        }
+    while (queue.length > 0) {
+        const current = queue.shift();
+
+        if (current && current.id === id) return current;
+        if (current && Array.isArray(current[props.childrenKey])) queue.push(...current[props.childrenKey]);
     }
     return null;
 }
 /**
- * 通过节点主键值查找父节点数据，没有则返回 null, 根列表返回 undefined
+ * 通过节点主键值查找父节点数据，没有则返回 null
  * @param id 节点主键值
- * @param data (可选)查找的节点数据
  */
-const findParentById = (id: any, data?: any[], parent?: any): any | null | undefined => {
-    if (!data) data = props.data;
+const findParentById = (id: any): any | null => {
+    const queue = <any>[{ data: _virtualRootData.value, parent: null }];
 
-    for (const _data of data) {
-        if (!_data) continue;
-        if (_data[props.idKey] === id) return parent;
-        if (_data[props.childrenKey]?.length) {
-            const foundData = findParentById(id, _data[props.childrenKey], _data);
-            if (foundData) return foundData;
+    while (queue.length > 0) {
+        const { data, parent } = queue.shift()!;
+
+        if (!data) continue;
+        if (data[props.idKey] === id) return parent;
+
+        if (!Array.isArray(data[props.childrenKey])) continue;
+        for (const child of data[props.childrenKey]) {
+            queue.push({ data: child, parent: data });
         }
     }
     return null;
-};
-/**
- * 通过节点主键值查找父节点数据
- * 若为根节点列表的数据，则返回 children 为根列表的节点数据
- * @param id 节点主键值
- * @param _defaultParent 未找到父节点时作为默认父节点的数据
- */
-const safeFindParentById = (id: any, _defaultParent?: any): any | null => {
-    let data = findParentById(id);
-
-    // 根数据不是有效的节点结构，构造一个最简化的树结构
-    if (data === undefined) {
-        data = <any>{};
-        data[props.childrenKey] = _defaultParent ? _defaultParent : props.data;
-    }
-    if (data === null) {
-        if (!_defaultParent) {
-            console.warn("safeFindParentById 未找到父节点且未提供默认父节点");
-            return null;
-        }
-        data = <any>{};
-        data[props.childrenKey] = _defaultParent;
-    }
-    return data;
 };
 
 /**
@@ -436,7 +428,7 @@ const safeFindParentById = (id: any, _defaultParent?: any): any | null => {
  */
 const removeData = (dataList: any[]) => {
     dataList.forEach((data: any) => {
-        const dataParent = data && safeFindParentById(data[props.idKey]);
+        const dataParent = data && findParentById(data[props.idKey]);
         if (!dataParent) return;
         const dataIndex = dataParent[props.childrenKey]?.indexOf(data);
 
@@ -461,12 +453,44 @@ const addData = (dataList: any[], parentData: any, insertIndex = 0) => {
  * @returns 移动后的节点索引
  */
  const moveBefore = (dragData: any[], dropData: any): number => {
-    const dropParent = safeFindParentById(dropData[props.idKey]);
+    const dropParent = findParentById(dropData[props.idKey]);
     if (!dropParent) return -1;
-    const dropIndex = dropParent[props.childrenKey]?.indexOf(dropData);
+    let dropIndex = dropParent[props.childrenKey]?.indexOf(dropData);
+
+    // 同级 移动到当前节点的 下一个节点之前 无需移动
+    const sameParentData = dragData.filter(data => {
+        if (!data) return false;
+        const dragParent = findParentById(data[props.idKey]);
+        if (!dragParent) return false;
+
+        if (dragParent[props.idKey] === dropParent[props.idKey]) return true;
+    });
+    const sameParentDataLength = sameParentData.length;
+    if (sameParentDataLength) {
+        const sameParent = findParentById(sameParentData[0][props.idKey]);
+
+        let noNeedMoveIds = <any>[];
+        for (let beforeIndex = dropIndex - 1; beforeIndex >= 0; beforeIndex--) {
+            let i = 0;
+            for (; i < sameParentDataLength; i++) {
+                const index = sameParent[props.childrenKey]?.indexOf(sameParentData[i]);
+
+                if (index === beforeIndex) {
+                    noNeedMoveIds.push(sameParentData[i][props.idKey]);
+                    break;
+                }
+            }
+            if (i === sameParentDataLength) break;
+        }
+        dragData = dragData.filter(data => data && !noNeedMoveIds.includes(data[props.idKey]));
+    }
 
     // 移除旧节点
     removeData(dragData);
+
+    // 更新下标
+    dropIndex = dropParent[props.childrenKey]?.indexOf(dropData);
+
     // 添加新节点
     addData(dragData, dropParent, dropIndex);
 
@@ -495,12 +519,14 @@ const moveIn = (dragData: any[], dropData: any): number => {
  * @returns 移动后的节点索引
  */
 const moveAfter = (dragData: any[], dropData: any) => {
-    const dropParent = safeFindParentById(dropData[props.idKey]);
+    const dropParent = findParentById(dropData[props.idKey]);
     if (!dropParent) return;
-    const dropIndex = dropParent[props.childrenKey]?.indexOf(dropData) + 1;
 
     // 移除旧节点
     removeData(dragData);
+
+    const dropIndex = dropParent[props.childrenKey]?.indexOf(dropData) + 1;
+
     // 添加新节点
     addData(dragData, dropParent, dropIndex);
 
@@ -517,7 +543,6 @@ defineExpose({
     getCurrentData,
     findById,
     findParentById,
-    safeFindParentById,
     removeData,
     addData,
     moveBefore,

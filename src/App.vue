@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import VueProjectTree from './components/ProjectTree.vue';
+import VueProjectTree, { type DroppedExtraData } from './components/ProjectTree.vue';
 
 interface TreeNode {
     id: number;

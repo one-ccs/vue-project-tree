@@ -1,5 +1,5 @@
 import { App } from "vue";
-import VueProjectTree from "./src/components/ProjectTree.vue";
+import VueProjectTree, { type DroppedExtraData} from "./src/components/ProjectTree.vue";
 
 VueProjectTree.install = (app: App) => {
   app.component(VueProjectTree.name, VueProjectTree);
@@ -7,3 +7,6 @@ VueProjectTree.install = (app: App) => {
 };
 
 export default VueProjectTree;
+export {
+    DroppedExtraData,
+};
