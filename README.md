@@ -99,10 +99,10 @@ const data = ref<TreeNode[]>([
 | enter | 拖拽进入事件 | (event: DragEvent, data: any, nodeElement: HTMLElement) 分别为事件数据，节点数据，节点元素 |
 | over | 拖拽进入后在节点内持续触发 | (event: DragEvent, data: any, nodeElement: HTMLElement) 分别为事件数据，节点数据，节点元素 |
 | leave | 拖拽离开事件 | (event: DragEvent, data: any, nodeElement: HTMLElement) 分别为事件数据，节点数据，节点元素 |
-| dropped | 节点放下事件 | (event: DragEvent, data: any, nodeElement: HTMLElement, extraData: DroppedExtraData) 分别为事件数据，节点数据，节点元素，额外数据（type: 拖拽方下位置） |
-| droppedBefore | 放在节点前事件 | (event: DragEvent, dragData: any[], dropData: any, preventDefault: Function, _default: Function) 分别为事件数据，拖拽节点数据列表，放下节点数据，回调函数（调用后阻止默认的移动操作），回调函数（调用后移动节点） |
-| droppedIn | 放在节点内事件 | (event: DragEvent, dragData: any[], dropData: any, preventDefault: Function, _default: Function) 分别为事件数据，拖拽节点数据列表，放下节点数据，回调函数（调用后阻止默认的移动操作），回调函数（调用后移动节点） |
-| droppedAfter | 放在节点后事件 | (event: DragEvent, dragData: any[], dropData: any, preventDefault: Function, _default: Function) 分别为事件数据，拖拽节点数据列表，放下节点数据，回调函数（调用后阻止默认的移动操作），回调函数（调用后移动节点） |
+| dropped | 节点放下事件 | (event: DragEvent, data: any, nodeElement: HTMLElement, extraData: DroppedExtraData) 分别为事件数据，节点数据，节点元素，额外数据（type: 拖拽放下位置, isPreventDefault: 是否阻止默认操作, preventDefault: 调用后阻止默认操作, _default?: 调用后立即执行默认操作（仅放下子事件拥有）） |
+| droppedBefore | 放在节点前事件 | (event: DragEvent, dragData: any[], dropData: any, extraData: DroppedExtraData) 分别为事件数据，拖拽节点数据列表，放下节点数据，额外数据（type: 拖拽放下位置, isPreventDefault: 是否阻止默认操作, preventDefault: 调用后阻止默认操作, _default?: 调用后立即执行默认操作（仅放下子事件拥有 |
+| droppedIn | 放在节点内事件 | (event: DragEvent, dragData: any[], dropData: any, extraData: DroppedExtraData) 分别为事件数据，拖拽节点数据列表，放下节点数据，额外数据（type: 拖拽放下位置, isPreventDefault: 是否阻止默认操作, preventDefault: 调用后阻止默认操作, _default?: 调用后立即执行默认操作（仅放下子事件拥有 |
+| droppedAfter | 放在节点后事件 | (event: DragEvent, dragData: any[], dropData: any, extraData: DroppedExtraData) 分别为事件数据，拖拽节点数据列表，放下节点数据，额外数据（type: 拖拽放下位置, isPreventDefault: 是否阻止默认操作, preventDefault: 调用后阻止默认操作, _default?: 调用后立即执行默认操作（仅放下子事件拥有 |
 | end | 拖拽结束事件 | (event: DragEvent, data: any, nodeElement: HTMLElement) 分别为事件数据，节点数据，节点元素 |
 
 ### 3、方法

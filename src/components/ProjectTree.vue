@@ -57,6 +57,9 @@ defineOptions({
 
 export interface DroppedExtraData {
     type: "dropped" | "before" | "in" | "after";
+    isPreventDefault: boolean;
+    preventDefault: Function;
+    _default?: Function;
 };
 
 interface Props {
@@ -156,9 +159,9 @@ const emit = defineEmits<{
     (e: "over", event: DragEvent, data: any, nodeElement: HTMLElement): void,
     (e: "leave", event: DragEvent, data: any, nodeElement: HTMLElement): void,
     (e: "dropped", event: DragEvent, data: any, nodeElement: HTMLElement, extraData: DroppedExtraData): void,
-    (e: "droppedBefore", event: DragEvent, dragData: any[], dropData: any, preventDefault: Function, _default: Function): void,
-    (e: "droppedIn", event: DragEvent, dragData: any[], dropData: any, preventDefault: Function, _default: Function): void,
-    (e: "droppedAfter", event: DragEvent, dragData: any[], dropData: any, preventDefault: Function, _default: Function): void,
+    (e: "droppedBefore", event: DragEvent, dragData: any[], dropData: any, extraData: DroppedExtraData): void,
+    (e: "droppedIn", event: DragEvent, dragData: any[], dropData: any, extraData: DroppedExtraData): void,
+    (e: "droppedAfter", event: DragEvent, dragData: any[], dropData: any, extraData: DroppedExtraData): void,
     (e: "end", event: DragEvent, data: any, nodeElement: HTMLElement): void,
 }>();
 
@@ -280,55 +283,60 @@ const onDropped = (event: DragEvent, data: any, nodeElement: HTMLElement) => {
     event.preventDefault();
     const extraData = <DroppedExtraData>{
         type: "dropped",
+        isPreventDefault: false,
+        preventDefault: () => extraData.isPreventDefault = true,
     };
 
     // 清除拖动视觉提示
     data._isDropBefore = data._isDropIn = data._isDropAfter = false;
 
-    // 抛出子事件
+    // 判断放下范围
     if (props.sortable && event.offsetY <= dropOffset) {
         extraData.type = "before";
-        onDroppedBefore(event, getMoveList(), data);
     }
     else if (props.sortable && event.offsetY >= parseFloat(props.nodeHeight as string) - dropOffset) {
         extraData.type = "after";
-        onDroppedAfter(event, getMoveList(), data);
     }
     else if (safeBoolean(props.allowDrop(data))) {
         extraData.type = "in";
-        onDroppedIn(event, getMoveList(), data);
     }
+
     emit("dropped", event, data, nodeElement, extraData);
+
+    // 抛出子事件
+    if (extraData.type === "before") {
+        onDroppedBefore(event, getMoveList(), data, extraData);
+    }
+    else if (extraData.type === "in") {
+        onDroppedIn(event, getMoveList(), data, extraData);
+    }
+    else if (extraData.type === "after") {
+        onDroppedAfter(event, getMoveList(), data, extraData);
+    }
 };
 // 节点拖拽放到节点前事件
-const onDroppedBefore = (event: DragEvent, dragData: any[], dropData: any) => {
-    let isPreventDefault = false;
-    const preventDefault = () => isPreventDefault = true;
-    const _default = () => moveBefore(dragData, dropData);
+const onDroppedBefore = (event: DragEvent, dragData: any[], dropData: any, extraData: DroppedExtraData) => {
+    extraData._default = () => moveBefore(dragData, dropData);
 
-    emit("droppedBefore", event, dragData, dropData, preventDefault, _default);
+    emit("droppedBefore", event, dragData, dropData, extraData);
 
-    !isPreventDefault && _default();
+    !extraData.isPreventDefault && extraData._default();
 };
 // 节点拖拽放到节点内事件
-const onDroppedIn = (event: DragEvent, dragData: any[], dropData: any) => {
-    let isPreventDefault = false;
-    const preventDefault = () => isPreventDefault = true;
-    const _default = () => moveIn(dragData, dropData);
+const onDroppedIn = (event: DragEvent, dragData: any[], dropData: any, extraData: DroppedExtraData) => {
+    extraData._default = () => moveIn(dragData, dropData);
 
-    emit("droppedIn", event, dragData, dropData, preventDefault, _default);
+    emit("droppedIn", event, dragData, dropData, extraData);
 
-    !isPreventDefault && _default();
+    !extraData.isPreventDefault && extraData._default();
 };
 // 节点拖拽放到节点后事件
-const onDroppedAfter = (event: DragEvent, dragData: any[], dropData: any) => {
-    let isPreventDefault = false;
-    const preventDefault = () => isPreventDefault = true;
-    const _default = () => moveAfter(dragData, dropData);
+const onDroppedAfter = (event: DragEvent, dragData: any[], dropData: any, extraData: DroppedExtraData) => {
+    extraData._default = () => moveAfter(dragData, dropData);
 
-    emit("droppedAfter", event, dragData, dropData, preventDefault, _default);
+    emit("droppedAfter", event, dragData, dropData, extraData);
 
-    !isPreventDefault && _default();
+    !extraData.isPreventDefault && extraData._default();
 };
 // 节点拖拽结束事件
 const onDragEnd = (event: DragEvent, data: any, nodeElement: HTMLElement) => {

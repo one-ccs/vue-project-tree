@@ -58,12 +58,12 @@ const allowDrop = (data: any) => {
     if (data.id === 7) return false;
     return true;
 };
-const onDroppedIn = async (event: DragEvent, dragData: any, dropData: any, preventDefault: Function, _default: Function) => {
+const onDroppedIn = async (event: DragEvent, dragData: any, dropData: any, extraData: DroppedExtraData) => {
     !!event;
     !!dragData;
 
     if (dragItem) {
-        preventDefault();
+        extraData.preventDefault();
         if (!dropData.children) dropData.children = [];
 
         dropData.children.push({
@@ -74,17 +74,17 @@ const onDroppedIn = async (event: DragEvent, dragData: any, dropData: any, preve
     }
     if (dropData.id === 2) {
         // 取消默认移动操作
-        preventDefault();
+        extraData.preventDefault();
         // 模拟异步
         let flag = await new Promise(resolve => {
             setTimeout(() => {
                 resolve(true);
             }, 1000);
         });
-        if (flag) _default();
+        if (flag) extraData._default!();
     }
     if (dropData.id === 5) {
-        preventDefault();
+        extraData.preventDefault();
     }
 };
 
