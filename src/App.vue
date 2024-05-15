@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import VueProjectTree, { type DroppedExtraData } from './components/ProjectTree.vue';
+import type { DroppedExtraData } from './utils/interface';
+import VueProjectTree from './components/ProjectTree.vue';
 
 interface TreeNode {
     id: number;
@@ -50,9 +51,6 @@ const getData = () => {
                 label: "7 不允许拖拽、放下",
             },
         ];
-
-
-        console.log(treeRef.value);
     }, 1000);
 };
 

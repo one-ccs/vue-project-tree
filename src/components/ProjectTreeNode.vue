@@ -106,24 +106,10 @@
 
 <script setup lang="ts">
 import { ref, toRefs } from 'vue';
+import type { VueProjectTreeNodeProps } from '../utils/interface.ts';
 import ExpandTransition from './ExpandTransition.vue';
 
-const props = defineProps<{
-    data: any;
-    idKey: string;
-    labelKey: string;
-    childrenKey: string;
-    currentData: any;
-    highlightCurrent?: boolean;
-    level: number;
-    expandIcon: boolean,
-    expandIconSize: number | string;
-    nodeIcon: boolean;
-    nodeIconSize: number | string;
-    draggable: boolean;
-    allowDrag: Function;
-    allowDrop: Function;
-}>();
+const props = defineProps<VueProjectTreeNodeProps>();
 
 const {
     data,

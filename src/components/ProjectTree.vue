@@ -49,40 +49,16 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import type { VueProjectTreeProps, DroppedExtraData } from '../utils/interface.ts';
 import ProjectTreeNode from "./ProjectTreeNode.vue";
 
 defineOptions({
     name: "VueProjectTree",
 });
 
-export interface DroppedExtraData {
-    type: "dropped" | "before" | "in" | "after";
-    isPreventDefault: boolean;
-    preventDefault: Function;
-    _default?: Function;
-};
-
-interface Props {
-    data: any[];
-    idKey?: string;
-    labelKey?: string;
-    childrenKey?: string;
-    indent?: number | string;
-    nodeHeight?: number | string;
-    highlightCurrent?: boolean;
-    expandIcon?: boolean;
-    expandIconSize?: number | string;
-    nodeIcon?: boolean;
-    nodeIconSize?: number | string;
-    filterMethod?: Function;
-    draggable?: boolean;
-    sortable?: boolean;
-    allowDrag?: Function;
-    allowDrop?: Function;
-};
 
 // 使用 props 而不解构，防止丢失响应性
-const props = withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<VueProjectTreeProps>(), {
     idKey: "id",
     labelKey: "label",
     childrenKey: "children",
