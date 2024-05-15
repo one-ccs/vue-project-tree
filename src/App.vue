@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import VueProjectTree, { type DroppedExtraData } from './components/ProjectTree.vue';
 
 interface TreeNode {
@@ -9,41 +9,52 @@ interface TreeNode {
 };
 
 const treeRef = ref<any>(null);
-const treeData = ref<TreeNode[]>([
-    {
-        id: 1,
-        label: "1 不允许拖拽",
-        children: [
+const treeData = ref<TreeNode[]>([]);
+const currentNode = ref(treeData.value[0]);
+let dragItem = <number | null>null;
+
+// 模拟异步加载数据
+const getData = () => {
+    setTimeout(() => {
+        treeData.value = [
             {
-                id: 2,
-                label: "2 延迟异步放入",
+                id: 1,
+                label: "1 不允许拖拽",
                 children: [
                     {
-                        id: 3,
-                        label: "3"
+                        id: 2,
+                        label: "2 延迟异步放入",
+                        children: [
+                            {
+                                id: 3,
+                                label: "3"
+                            },
+                            {
+                                id: 4,
+                                label: "4"
+                            },
+                        ]
                     },
                     {
-                        id: 4,
-                        label: "4"
+                        id: 5,
+                        label: "5 取消默认的移动操作",
                     },
-                ]
+                ],
             },
             {
-                id: 5,
-                label: "5 取消默认的移动操作",
+                id: 6,
+                label: "6 不允许拖拽",
             },
-        ],
-    },
-    {
-        id: 6,
-        label: "6 不允许拖拽",
-    },
-    {
-        id: 7,
-        label: "7 不允许拖拽、放下",
-    },
-]);
-const currentNode = ref(treeData.value[0]);
+            {
+                id: 7,
+                label: "7 不允许拖拽、放下",
+            },
+        ];
+
+
+        console.log(treeRef.value);
+    }, 1000);
+};
 
 const onCurrentNodeChange = (data: any) => {
     currentNode.value = data;
@@ -88,7 +99,9 @@ const onDroppedIn = async (event: DragEvent, dragData: any, dropData: any, extra
     }
 };
 
-let dragItem = <number | null>null;
+onMounted(() => {
+    getData();
+});
 </script>
 
 <template>

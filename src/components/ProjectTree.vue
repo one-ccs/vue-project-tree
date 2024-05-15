@@ -125,12 +125,15 @@ const _nodeIconSize = computed(() => {
 });
 
 const projectTreeRef = ref<any>(null);
-const _virtualRootData = ref<any>({});
+const _virtualRootData = computed(() => {
+    let root = <any>{};
 
-_virtualRootData.value[props.idKey] = -2;
-_virtualRootData.value[props.labelKey] = "虚构根节点";
-_virtualRootData.value[props.childrenKey] = props.data;
+    root[props.idKey] = -2;
+    root[props.labelKey] = "虚构根节点";
+    root[props.childrenKey] = props.data;
 
+    return root;
+});
 
 // 放下位置偏移量
 const dropOffset = 8;
