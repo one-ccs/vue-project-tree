@@ -18,6 +18,7 @@
                 :current-data="currentData"
                 :highlight-current="props.highlightCurrent"
                 :level="0"
+                :expand-icon-hold="props.expandIconHold"
                 :expand-icon="props.expandIcon"
                 :expand-icon-size="_expandIconSize"
                 :node-icon="props.nodeIcon"
@@ -67,6 +68,7 @@ const props = withDefaults(defineProps<VueProjectTreeProps>(), {
     highlightCurrent: true,
     expandIcon: true,
     expandIconSize: 12,
+    expandIconHold: false,
     nodeIcon: false,
     nodeIconSize: 20,
     filterMethod: () => true,

@@ -79,6 +79,7 @@ const data = ref<TreeNode[]>([
 | highlightCurrent? | 是否高亮当前选中节点 | `boolean` | `true` |
 | expandIcon? | 是否显示展开图标 | `boolean` | `true` |
 | expandIconSize? | 展开图标大小 | `number \| string` | `10` |
+| expandIconHold? | 没有子节点时是否保留位置 | `boolean` | `false` |
 | nodeIcon? | 是否显示节点图标 | `boolean` | `false` |
 | nodeIconSize? | 节点图标大小 | `number \| string` | `20` |
 | filterMethod? | 过滤方法（需手动调用 `filter` 函数执行过滤） | `Function` | `() => true` |

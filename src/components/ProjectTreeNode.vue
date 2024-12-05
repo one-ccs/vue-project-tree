@@ -26,7 +26,10 @@
             <div
                 v-if="expandIcon"
                 class="project-tree-icon project-tree-expand-icon"
-                :style="{ visibility: data[childrenKey]?.length ? 'visible' : 'hidden'}"
+                :style="{
+                    visibility: data[childrenKey]?.length ? 'visible' : 'hidden',
+                    display: !data[childrenKey]?.length && !expandIconHold ? 'none' : undefined,
+                }"
                 @click="onExpandClick($event, data, projectTreeNodeRef)"
             >
                 <slot name="expandIcon" :data="data" :size="expandIconSize">
@@ -73,6 +76,7 @@
                             :current-data="currentData"
                             :highlight-current="highlightCurrent"
                             :level="level + 1"
+                            :expand-icon-hold="expandIconHold"
                             :expand-icon="expandIcon"
                             :expand-icon-size="expandIconSize"
                             :node-icon="nodeIcon"
@@ -119,6 +123,7 @@ const {
     currentData,
     highlightCurrent,
     level,
+    expandIconHold,
     expandIcon,
     expandIconSize,
     nodeIcon,

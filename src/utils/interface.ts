@@ -8,6 +8,7 @@ export interface VueProjectTreeProps {
     highlightCurrent?: boolean;
     expandIcon?: boolean;
     expandIconSize?: number | string;
+    expandIconHold?: boolean;
     nodeIcon?: boolean;
     nodeIconSize?: number | string;
     filterMethod?: Function;
@@ -27,6 +28,7 @@ export interface VueProjectTreeNodeProps {
     level: number;
     expandIcon: boolean,
     expandIconSize: number | string;
+    expandIconHold: boolean;
     nodeIcon: boolean;
     nodeIconSize: number | string;
     draggable: boolean;
