@@ -69,6 +69,7 @@ const props = withDefaults(defineProps<VueProjectTreeProps>(), {
     expandIcon: true,
     expandIconSize: 12,
     expandIconHold: false,
+    expandWithClick: true,
     nodeIcon: false,
     nodeIconSize: 20,
     filterMethod: () => true,
@@ -176,6 +177,9 @@ const onNodeClick = (event: MouseEvent, data: any, nodeElement: HTMLElement) => 
         // 清除多选状态
         _isMultipleStart = true;
         clearMultipleList();
+        if (props.expandWithClick) {
+            data._isExpanded = !safeBoolean(data._isExpanded, true);
+        }
     }
 
     // 记录上次点击元素对应的 data

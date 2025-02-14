@@ -9,6 +9,7 @@ export interface VueProjectTreeProps {
     expandIcon?: boolean;
     expandIconSize?: number | string;
     expandIconHold?: boolean;
+    expandWithClick?: boolean;
     nodeIcon?: boolean;
     nodeIconSize?: number | string;
     filterMethod?: Function;
