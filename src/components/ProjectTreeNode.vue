@@ -22,7 +22,9 @@
             @dragleave.self="onDragLeave($event, data, projectTreeNodeRef)"
             @drop="onDropped($event, data, projectTreeNodeRef)"
         >
+            <!-- 缩进 -->
             <div class="project-tree-node-line" v-for="_ in level" />
+            <!-- 展开图标 -->
             <div
                 v-if="expandIcon"
                 class="project-tree-icon project-tree-expand-icon"
@@ -38,6 +40,7 @@
                     </svg>
                 </slot>
             </div>
+            <!-- 节点图标 -->
             <div
                 v-if="nodeIcon"
                 class="project-tree-icon project-tree-node-icon"
@@ -49,6 +52,7 @@
                     </svg>
                 </slot>
             </div>
+            <!-- 节点标签 -->
             <div class="project-tree-label">
                 <div v-if="safeBoolean(data._isDropBefore)" class="project-tree-label-drag-top-line"></div>
                 <div
@@ -60,6 +64,7 @@
                 <div v-if="safeBoolean(data._isDropAfter)" class="project-tree-label-drag-bottom-line"></div>
             </div>
         </div>
+        <!-- 子节点 -->
         <template v-if="data[childrenKey]?.length">
             <expand-transition>
                 <div

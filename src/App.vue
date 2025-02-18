@@ -38,7 +38,7 @@ const getData = () => {
                     },
                     {
                         id: 5,
-                        label: "5 取消默认的移动操作",
+                        label: "5 禁止放入节点内部，可以放在前或后",
                     },
                 ],
             },
@@ -67,9 +67,8 @@ const allowDrop = (data: any) => {
     if (data.id === 7) return false;
     return true;
 };
-const onDroppedIn = async (event: DragEvent, dragData: any, dropData: any, extraData: DroppedExtraData) => {
+const onDroppedIn = async (event: DragEvent, dragData: any[], dropData: any, extraData: DroppedExtraData) => {
     !!event;
-    !!dragData;
 
     if (dragItem) {
         extraData.preventDefault();
@@ -90,9 +89,10 @@ const onDroppedIn = async (event: DragEvent, dragData: any, dropData: any, extra
                 resolve(true);
             }, 1000);
         });
+        // 调用默认移动操作
         if (flag) extraData._default!();
     }
-    if (dropData.id === 5) {
+    if (dragData[0] && dragData[0].id === 5) {
         extraData.preventDefault();
     }
 };

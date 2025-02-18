@@ -203,6 +203,8 @@ const onDragStart = (event: DragEvent, data: any, nodeElement: HTMLElement) => {
     // 若直接移动其它节点 则清除多选列表
     const moveList = getMoveList();
     if (moveList.length && !moveList.includes(data)) clearMultipleList();
+    // 收缩节点
+    data._isExpanded = false;
     emit("nodeClick", event, data, nodeElement);
     emit("start", event, data, nodeElement);
 };
@@ -218,6 +220,7 @@ const onDragEnter = (event: DragEvent, data: any, nodeElement: HTMLElement) => {
 const onDragOver = (event: DragEvent, data: any, nodeElement: HTMLElement) => {
     // 自动展开下级节点
     if (
+        !data._isCurrent &&
         !safeBoolean(data._isExpanded, true) &&
         event.timeStamp - _lastTimeStamp >= expandHoverTime &&
         data[props.childrenKey]?.length
@@ -369,7 +372,13 @@ const filter = (value: any, _data: any) => {
  * @param data 节点数据
  */
 const setCurrentData = (data: any) => {
+    if (currentData.value) {
+        currentData.value._isCurrent = false;
+    }
     currentData.value = data;
+    if (currentData.value) {
+        currentData.value._isCurrent = true;
+    }
     onCurrentNodeChange(data);
 };
 /**
@@ -546,7 +555,7 @@ defineExpose({
 /**
  * 加强的布尔判断
  * @param value 判断值
- * @param _default 当 value 为 undefined 或 null 时的返回值
+ * @param _default 当 value 为 undefined 或 null 时的返回值, 默认为 `false`
  */
 const safeBoolean = (value: any, _default = false): boolean => {
     if (value === undefined || value === null) return _default;
