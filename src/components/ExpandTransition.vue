@@ -1,5 +1,5 @@
 <template>
-    <transition name="expand-transition" v-on="on">
+    <transition name="expand-transition" v-on="on" :css="false">
         <slot></slot>
     </transition>
 </template>
@@ -7,84 +7,74 @@
 <script setup lang="ts">
 import type { RendererElement } from 'vue';
 
-const reset = (el: RendererElement) => {
-    el.style.maxHeight = "";
-    el.style.overflow = el.dataset.oldOverflow;
-    el.style.paddingTop = el.dataset.oldPaddingTop;
-    el.style.paddingBottom = el.dataset.oldPaddingBottom;
+const backup = (el: RendererElement) => {
+    if (!el._backup) el._backup = {};
+
+    el._backup.height = el.style.height;
+    el._backup.overflow = el.style.overflow;
+};
+
+const recover = (el: RendererElement) => {
+    cancelAnimationFrame(el._backup.animate);
+    el.style.height = el._backup.height;
+    el.style.overflow = el._backup.overflow;
 };
 
 const on = {
     beforeEnter(el: RendererElement) {
-        if (!el.dataset) el.dataset = {};
+        backup(el);
 
-        el.dataset.oldPaddingTop = el.style.paddingTop;
-        el.dataset.oldPaddingBottom = el.style.paddingBottom;
-        if (el.style.height) el.dataset.elExistsHeight = el.style.height;
-
-        el.style.maxHeight = 0;
-        el.style.paddingTop = 0;
-        el.style.paddingBottom = 0;
+        el.style.height = '0';
+        el.style.overflow = 'hidden';
     },
     enter(el: RendererElement, done: Function) {
-        requestAnimationFrame(() => {
-            el.dataset.oldOverflow = el.style.overflow;
+        requestAnimationFrame(function func() {
+            let height = parseInt(el.style.height);
+            let offset = (el.scrollHeight - height) > 1 ? (el.scrollHeight - height) / 2: el.scrollHeight - height;
 
-            if (el.dataset.elExistsHeight) {
-                el.style.maxHeight = el.dataset.elExistsHeight;
-            } else if (el.scrollHeight !== 0) {
-                el.style.maxHeight = `${el.scrollHeight}px`;
-            } else {
-                el.style.maxHeight = 0;
+            if (height < el.scrollHeight) {
+                el.style.height = height + offset + 'px';
+                requestAnimationFrame(func);
             }
-
-            el.style.paddingTop = el.dataset.oldPaddingTop;
-            el.style.paddingBottom = el.dataset.oldPaddingBottom;
-            el.style.overflow = 'hidden';
+            else {
+                done();
+            }
         });
-        el.dataset.timer = setTimeout(() => {
-            done();
-        }, 3000);
     },
     afterEnter(el: RendererElement) {
-        el.style.maxHeight = '';
-        el.style.overflow = el.dataset.oldOverflow;
-        el.dataset && el.dataset.timer && clearInterval(el.dataset.timer);
+        recover(el);
     },
     enterCancelled(el: RendererElement) {
-        reset(el);
+        recover(el);
     },
     beforeLeave(el: RendererElement) {
-        if (!el.dataset) el.dataset = {};
+        backup(el);
 
-        el.dataset.oldPaddingTop = el.style.paddingTop;
-        el.dataset.oldPaddingBottom = el.style.paddingBottom;
-        el.dataset.oldOverflow = el.style.overflow;
-
-        el.style.maxHeight = `${el.scrollHeight}px`;
+        el.style.height = el.scrollHeight + 'px';
         el.style.overflow = 'hidden';
     },
     leave(el: RendererElement, done: Function) {
-        if (el.scrollHeight !== 0) {
-            el.style.maxHeight = 0;
-            el.style.paddingTop = 0;
-            el.style.paddingBottom = 0;
-        }
+        requestAnimationFrame(function func() {
+            let height = parseInt(el.style.height);
+            let offset = height / 2 > 1 ? height / 2 : 1;
+
+            if (height > 0) {
+                el.style.height = height - offset + 'px';
+                requestAnimationFrame(func);
+            }
+            else {
+                done();
+            }
+        });
     },
     afterLeave(el: RendererElement) {
-        reset(el);
+        recover(el);
     },
     leaveCancelled(el: RendererElement) {
-        reset(el);
+        recover(el);
     },
 };
 </script>
 
 <style lang="less">
-.expand-transition-enter-active,
-.expand-transition-leave-active {
-  transition: .3s max-height ease-in-out,
-    .3s padding-top ease-in-out,
-    .3s padding-bottom ease-in-out;
-}
 </style>

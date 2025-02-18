@@ -287,7 +287,7 @@ const safeBoolean = (value: any, _default = false): boolean => {
             width: var(--indent-width);
             text-align: center;
             transform: rotateZ(0deg);
-            transition: transform .3s ease-in-out;
+            transition: transform .2s ease-out;
         }
 
         .project-tree-node-icon {
