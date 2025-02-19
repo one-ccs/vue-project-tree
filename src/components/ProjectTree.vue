@@ -119,15 +119,15 @@ const _virtualRootData = computed(() => {
 // 放下位置偏移量
 const dropOffset = 8;
 // 放下目标的 data
-const _dropTargetData = ref<any>(null);
+const _dropTargetData = ref<NodeData | null>(null);
 // 放下目标的 HTMLElement
-const _dropTargetElement = ref<any>(null);
+const _dropTargetElement = ref<HTMLElement | null>(null);
 // 是否是多选开始
 let _isMultipleStart = true;
 // 上次点击的元素的 data
-let _lastClickData = <any>null;
+let _lastClickData = <NodeData | null>null;
 // 多选列表（多选元素的 data）
-let _multipleList = <any>[];
+let _multipleList = <NodeData[]>[];
 let _lastTimeStamp = 0;
 
 /* 注意：以下事件已经冒泡到顶层，仅触发一次 */
@@ -166,7 +166,7 @@ const onNodeClick = (event: MouseEvent, data: NodeData, nodeElement: HTMLElement
             _isMultipleStart = false;
 
             safeVolume(_lastClickData, "_isChecked", true);
-            _multipleList.push(_lastClickData);
+            _multipleList.push(_lastClickData!);
         };
         // 选中当前元素
         data._isChecked = true;
@@ -200,16 +200,19 @@ const onNodeRightClick = (event: MouseEvent, data: NodeData, nodeElement: HTMLEl
 // 节点拖拽开始事件
 const onDragStart = (event: DragEvent, data: NodeData, nodeElement: HTMLElement) => {
     setCurrentData(data);
-    // 异步设置移动状态，防止拖拽元素的样式显示错误
-    setTimeout(() => {
-        data._isMoving = true;
-    }, 0);
     // 若直接移动其它节点 则清除多选列表
     const moveList = getMoveList();
     if (moveList.length && !moveList.includes(data)) clearMultipleList();
-    // 收缩节点
-    data._isExpandedOld = data._isExpanded;
-    data._isExpanded = false;
+
+    moveList.forEach(data => {
+        // 异步设置移动状态，防止拖拽元素的样式显示错误
+        setTimeout(() => {
+            data._isMoving = true;
+        }, 0);
+        // 收缩节点
+        data._isExpandedOld = data._isExpanded;
+        data._isExpanded = false;
+    });
     emit("nodeClick", event, data, nodeElement);
     emit("start", event, data, nodeElement);
 };
@@ -231,7 +234,7 @@ const onDragOver = (event: DragEvent, data: NodeData, nodeElement: HTMLElement) 
 
     // 自动展开下级节点
     if (
-        !data._isCurrent &&
+        !data._isMoving &&
         !safeBoolean(data._isExpanded, true) &&
         event.timeStamp - _lastTimeStamp >= props.expandHoverTime &&
         data[props.childrenKey]?.length
@@ -338,33 +341,38 @@ const onDroppedAfter = (event: DragEvent, dragData: NodeData[], dropData: NodeDa
 const onDragEnd = (event: DragEvent, data: NodeData, nodeElement: HTMLElement) => {
     !!data;
     !!nodeElement;
-    data._isMoving = false;
-    // 还原节点展开状态
-    if (safeBoolean(data._isExpandedOld, true)) data._isExpanded = true;
+    const moveList = getMoveList();
+
+    moveList.forEach(data => {
+        // 取消移动状态
+        data._isMoving = false
+        // 还原节点展开状态
+        if (safeBoolean(data._isExpandedOld, true)) data._isExpanded = true;
+    });
     // 默认的 data 和 nodeElement 为拖拽开始时的值，需在 dragenter 追踪变化
-    emit("end", event, _dropTargetData.value, _dropTargetElement.value);
+    emit("end", event, _dropTargetData.value!, _dropTargetElement.value!);
 };
 
 /**
  * 返回多选节点的 data
  */
-const getMultipleList = () => {
+const getMultipleList = (): NodeData[] => {
     return _multipleList;
 };
 /**
  * 清除多选列表
  */
-const clearMultipleList = () => {
+const clearMultipleList = (): void => {
     _multipleList.forEach((data: NodeData) => data._isChecked = false);
     _multipleList.length = 0;
 };
 /**
  * 获取多选列表，多选列表为空时返回元素为当前节点数据的列表
  */
-const getMoveList = () => {
+const getMoveList = (): NodeData[] => {
   let dataList = getMultipleList();
 
-  return dataList.length ? dataList : [currentData.value];
+  return dataList.length ? dataList : [currentData.value!];
 };
 /**
  * 过滤节点

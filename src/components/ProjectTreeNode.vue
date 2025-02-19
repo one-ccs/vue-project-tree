@@ -341,6 +341,24 @@ const onDragEnd = (event: DragEvent, data: NodeData, nodeElement: HTMLElement) =
                 top: 0;
                 width: 100%;
                 border-top: 1px solid var(--bg-color-drop-in);
+
+                &::before {
+                    content: "⇑";
+                    display: inline-block;
+                    position: fixed;
+                    color: var(--bg-color-drop-in);
+                    transform: translate(-8px, -5px);
+                    animation: arrow-up .5s infinite alternate;
+
+                    @keyframes arrow-up {
+                        from {
+                            transform: translate(-8px, 0);
+                        }
+                        to {
+                            transform: translate(-8px, -5px);
+                        }
+                    }
+                }
             }
 
             .project-tree-label-text {
@@ -354,6 +372,24 @@ const onDragEnd = (event: DragEvent, data: NodeData, nodeElement: HTMLElement) =
                 &.is-drop-in {
                     --color: var(--color-drop-in);
                     background-color: var(--bg-color-drop-in);
+
+                    &::before {
+                        content: "⇘";
+                        display: inline-block;
+                        position: fixed;
+                        color: var(--bg-color-drop-in);
+                        transform: translate(-13px, -2px);
+                        animation: arrow-in .5s infinite alternate;
+
+                        @keyframes arrow-in {
+                            from {
+                                transform: translate(-10px, 3px);
+                            }
+                            to {
+                                transform: translate(-13px, -2px);
+                            }
+                        }
+                    }
                 }
             }
 
@@ -362,6 +398,24 @@ const onDragEnd = (event: DragEvent, data: NodeData, nodeElement: HTMLElement) =
                 bottom: 0;
                 width: 100%;
                 border-bottom: 2px solid var(--bg-color-drop-in);
+
+                &::before {
+                    content: "⇓";
+                    display: inline-block;
+                    position: fixed;
+                    color: var(--bg-color-drop-in);
+                    transform: translate(-8px, -15px);
+                    animation: arrow-down .5s infinite alternate;
+
+                    @keyframes arrow-down {
+                        from {
+                            transform: translate(-8px, -15px);
+                        }
+                        to {
+                            transform: translate(-8px, -20px);
+                        }
+                    }
+                }
             }
         }
     }
