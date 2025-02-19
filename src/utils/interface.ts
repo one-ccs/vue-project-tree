@@ -1,5 +1,5 @@
 export interface VueProjectTreeProps {
-    data: any[];
+    data: NodeData[];
     idKey?: string;
     labelKey?: string;
     childrenKey?: string;
@@ -10,6 +10,7 @@ export interface VueProjectTreeProps {
     expandIconSize?: number | string;
     expandIconHold?: boolean;
     expandWithClick?: boolean;
+    expandHoverTime?: 380;
     nodeIcon?: boolean;
     nodeIconSize?: number | string;
     filterMethod?: Function;
@@ -20,14 +21,14 @@ export interface VueProjectTreeProps {
 };
 
 export interface VueProjectTreeNodeProps {
-    data: any;
+    data: NodeData;
     idKey: string;
     labelKey: string;
     childrenKey: string;
-    currentData: any;
+    currentData?: NodeData;
     highlightCurrent?: boolean;
     level: number;
-    expandIcon: boolean,
+    expandIcon: boolean;
     expandIconSize: number | string;
     expandIconHold: boolean;
     nodeIcon: boolean;
@@ -43,3 +44,16 @@ export interface DroppedExtraData {
     preventDefault: Function;
     _default?: Function;
 };
+
+export interface NodeData {
+    [key: string]: any;
+    _isVisible?: boolean;
+    _isCurrent?: boolean;
+    _isChecked?: boolean;
+    _isExpanded?: boolean;
+    _isExpandedOld?: boolean;
+    _isMoving?: boolean;
+    _isDropBefore?: boolean;
+    _isDropIn?: boolean;
+    _isDropAfter?: boolean;
+}

@@ -5,6 +5,7 @@
             'is-current': highlightCurrent && currentData && currentData[idKey] === data[idKey],
             'is-expanded': safeBoolean(data._isExpanded, true),
             'is-checked': safeBoolean(data._isChecked),
+            'moving': safeBoolean(data._isMoving),
         }"
         v-show="safeBoolean(data._isVisible, true)"
         ref="projectTreeNodeRef"
@@ -114,9 +115,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, toRefs } from 'vue';
-import type { VueProjectTreeNodeProps } from '../utils/interface.ts';
-import ExpandTransition from './ExpandTransition.vue';
+import { ref, toRefs } from "vue";
+import type { VueProjectTreeNodeProps, NodeData } from "../utils/interface.ts";
+import { safeBoolean } from "../utils/common.js";
+import ExpandTransition from "./ExpandTransition.vue";
 
 const props = defineProps<VueProjectTreeNodeProps>();
 
@@ -138,71 +140,61 @@ const {
     allowDrop,
 } = toRefs(props);
 
-const projectTreeNodeRef = ref<any>(null);
+const projectTreeNodeRef = ref<HTMLDivElement>(null as any);
 
 /* 注意：以下事件会层层冒泡，多次触发，请勿添加事务代码，仅抛出事件 */
 const emit = defineEmits<{
-    (e: "expandClick", event: MouseEvent, data: any, nodeElement: HTMLElement): void,
-    (e: "nodeClick", event: MouseEvent, data: any, nodeElement: HTMLElement): void,
-    (e: "nodeDblclick", event: MouseEvent, data: any, nodeElement: HTMLElement): void,
-    (e: "nodeRightClick", event: MouseEvent, data: any, nodeElement: HTMLElement): void,
-    (e: "start", event: DragEvent, data: any, nodeElement: HTMLElement): void,
-    (e: "enter", event: DragEvent, data: any, nodeElement: HTMLElement): void,
-    (e: "over", event: DragEvent, data: any, nodeElement: HTMLElement): void,
-    (e: "leave", event: DragEvent, data: any, nodeElement: HTMLElement): void,
-    (e: "dropped", event: DragEvent, data: any, nodeElement: HTMLElement): void,
-    (e: "end", event: DragEvent, data: any, nodeElement: HTMLElement): void,
+    (e: "expandClick", event: MouseEvent, data: NodeData, nodeElement: HTMLElement): void,
+    (e: "nodeClick", event: MouseEvent, data: NodeData, nodeElement: HTMLElement): void,
+    (e: "nodeDblclick", event: MouseEvent, data: NodeData, nodeElement: HTMLElement): void,
+    (e: "nodeRightClick", event: MouseEvent, data: NodeData, nodeElement: HTMLElement): void,
+    (e: "start", event: DragEvent, data: NodeData, nodeElement: HTMLElement): void,
+    (e: "enter", event: DragEvent, data: NodeData, nodeElement: HTMLElement): void,
+    (e: "over", event: DragEvent, data: NodeData, nodeElement: HTMLElement): void,
+    (e: "leave", event: DragEvent, data: NodeData, nodeElement: HTMLElement): void,
+    (e: "dropped", event: DragEvent, data: NodeData, nodeElement: HTMLElement): void,
+    (e: "end", event: DragEvent, data: NodeData, nodeElement: HTMLElement): void,
 }>();
 
 // 展开节点图标点击事件
-const onExpandClick = (event: MouseEvent, data: any, nodeElement: HTMLElement) => {
+const onExpandClick = (event: MouseEvent, data: NodeData, nodeElement: HTMLElement) => {
     emit("expandClick", event, data, nodeElement);
 };
 // 节点单击事件
-const onNodeClick = (event: MouseEvent, data: any, nodeElement: HTMLElement) => {
+const onNodeClick = (event: MouseEvent, data: NodeData, nodeElement: HTMLElement) => {
     emit("nodeClick", event, data, nodeElement);
 };
 // 节点双击事件
-const onNodeDblclick = (event: MouseEvent, data: any, nodeElement: HTMLElement) => {
+const onNodeDblclick = (event: MouseEvent, data: NodeData, nodeElement: HTMLElement) => {
     emit("nodeDblclick", event, data, nodeElement);
 };
 // 节点右键单击事件
-const onNodeRightClick = (event: MouseEvent, data: any, nodeElement: HTMLElement) => {
+const onNodeRightClick = (event: MouseEvent, data: NodeData, nodeElement: HTMLElement) => {
     emit("nodeRightClick", event, data, nodeElement);
 };
 // 节点拖拽开始事件
-const onDragStart = (event: DragEvent, data: any, nodeElement: HTMLElement) => {
+const onDragStart = (event: DragEvent, data: NodeData, nodeElement: HTMLElement) => {
     emit("start", event, data, nodeElement);
 };
 // 节点拖拽进入事件
-const onDragEnter = (event: DragEvent, data: any, nodeElement: HTMLElement) => {
+const onDragEnter = (event: DragEvent, data: NodeData, nodeElement: HTMLElement) => {
     emit("enter", event, data, nodeElement);
 };
 // 节点拖拽 over 事件
-const onDragOver = (event: DragEvent, data: any, nodeElement: HTMLElement) => {
+const onDragOver = (event: DragEvent, data: NodeData, nodeElement: HTMLElement) => {
     emit("over", event, data, nodeElement);
 };
 // 节点拖拽；离开事件
-const onDragLeave = (event: DragEvent, data: any, nodeElement: HTMLElement) => {
+const onDragLeave = (event: DragEvent, data: NodeData, nodeElement: HTMLElement) => {
     emit("leave", event, data, nodeElement);
 };
-// 节点拖拽结束事件
-const onDragEnd = (event: DragEvent, data: any, nodeElement: HTMLElement) => {
-    emit("end", event, data, nodeElement);
-};
 // 节点拖拽放下事件
-const onDropped = (event: DragEvent, data: any, nodeElement: HTMLElement) => {
+const onDropped = (event: DragEvent, data: NodeData, nodeElement: HTMLElement) => {
     emit("dropped", event, data, nodeElement);
 };
-
-/**
- * 加强的布尔判断
- * @param value 判断值
- * @param _default 当 value 为 undefined 或 null 时的返回值
- */
-const safeBoolean = (value: any, _default = false): boolean => {
-    if (value === undefined || value === null) return _default;
-    return !!value;
+// 节点拖拽结束事件
+const onDragEnd = (event: DragEvent, data: NodeData, nodeElement: HTMLElement) => {
+    emit("end", event, data, nodeElement);
 };
 </script>
 
@@ -245,6 +237,35 @@ const safeBoolean = (value: any, _default = false): boolean => {
         >.project-tree-node__content {
             >.project-tree-expand-icon {
                 transform: rotateZ(90deg);
+            }
+        }
+    }
+
+    /* 拖拽中样式 */
+    &.moving {
+        .transparent {
+            color: transparent;
+            background: transparent;
+        }
+        .transparent;
+
+        > .project-tree-node__content {
+            &:hover {
+                background-color: unset;
+            }
+
+            .project-tree-expand-icon,
+            .project-tree-node-icon,
+            .project-tree-label {
+                .transparent;
+                border: 1px dashed #ccc;
+
+                > .project-tree-label-text {
+                    .transparent;
+                }
+            }
+            .project-tree-expand-icon {
+                border: unset;
             }
         }
     }
@@ -313,6 +334,7 @@ const safeBoolean = (value: any, _default = false): boolean => {
             color: var(--color);
             background-color: var(--bg-color);
             pointer-events: none;
+            overflow: hidden;
 
             .project-tree-label-drag-top-line {
                 position: absolute;
@@ -325,6 +347,9 @@ const safeBoolean = (value: any, _default = false): boolean => {
                 padding: 3px 0;
                 color: var(--color);
                 background-color: var(--bg-color);
+                width: 100%;
+                overflow: hidden;
+                text-overflow: ellipsis;
 
                 &.is-drop-in {
                     --color: var(--color-drop-in);

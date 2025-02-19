@@ -81,6 +81,7 @@ const data = ref<TreeNode[]>([
 | expandIconSize? | 展开图标大小 | `number \| string` | `10` |
 | expandIconHold? | 没有子节点时是否保留位置 | `boolean` | `false` |
 | expandWithClick? | 是否在点击节点时展开 | `boolean` | `true` |
+| expandHoverTime? | 拖拽时在节点上悬停多少毫秒展开该节点 | `number` | `380` |
 | nodeIcon? | 是否显示节点图标 | `boolean` | `false` |
 | nodeIconSize? | 节点图标大小 | `number \| string` | `20` |
 | filterMethod? | 过滤方法（需手动调用 `filter` 函数执行过滤） | `Function` | `() => true` |
@@ -93,19 +94,19 @@ const data = ref<TreeNode[]>([
 
 | 事件名 | 说明 | 回调参数 |
 | --- | --- | --- |
-| nodeClick | 节点点击事件 | (event: DragEvent, data: any, nodeElement: HTMLElement) 分别为事件数据，节点数据，节点元素 |
-| nodeDblclick | 节点双击事件 | (event: DragEvent, data: any, nodeElement: HTMLElement) 分别为事件数据，节点数据，节点元素 |
-| nodeRightClick | 节点右键点击事件 | (event: DragEvent, data: any, nodeElement: HTMLElement) 分别为事件数据，节点数据，节点元素 |
-| currentNodeChange | 当前节点改变事件 | (data: any) 节点数据 |
-| start | 拖拽开始事件 | (event: DragEvent, data: any, nodeElement: HTMLElement) 分别为事件数据，节点数据，节点元素 |
-| enter | 拖拽进入事件 | (event: DragEvent, data: any, nodeElement: HTMLElement) 分别为事件数据，节点数据，节点元素 |
-| over | 拖拽进入后在节点内持续触发 | (event: DragEvent, data: any, nodeElement: HTMLElement) 分别为事件数据，节点数据，节点元素 |
-| leave | 拖拽离开事件 | (event: DragEvent, data: any, nodeElement: HTMLElement) 分别为事件数据，节点数据，节点元素 |
-| dropped | 节点放下事件 | (event: DragEvent, data: any, nodeElement: HTMLElement, extraData: DroppedExtraData) 分别为事件数据，节点数据，节点元素，额外数据（type: 拖拽放下位置, isPreventDefault: 是否阻止默认操作, preventDefault: 调用后阻止默认操作, _default?: 调用后立即执行默认操作（仅放下子事件拥有）） |
-| droppedBefore | 放在节点前事件 | (event: DragEvent, dragData: any[], dropData: any, extraData: DroppedExtraData) 分别为事件数据，拖拽节点数据列表，放下节点数据，额外数据（type: 拖拽放下位置, isPreventDefault: 是否阻止默认操作, preventDefault: 调用后阻止默认操作, _default?: 调用后立即执行默认操作（仅放下子事件拥有 |
-| droppedIn | 放在节点内事件 | (event: DragEvent, dragData: any[], dropData: any, extraData: DroppedExtraData) 分别为事件数据，拖拽节点数据列表，放下节点数据，额外数据（type: 拖拽放下位置, isPreventDefault: 是否阻止默认操作, preventDefault: 调用后阻止默认操作, _default?: 调用后立即执行默认操作（仅放下子事件拥有 |
-| droppedAfter | 放在节点后事件 | (event: DragEvent, dragData: any[], dropData: any, extraData: DroppedExtraData) 分别为事件数据，拖拽节点数据列表，放下节点数据，额外数据（type: 拖拽放下位置, isPreventDefault: 是否阻止默认操作, preventDefault: 调用后阻止默认操作, _default?: 调用后立即执行默认操作（仅放下子事件拥有 |
-| end | 拖拽结束事件 | (event: DragEvent, data: any, nodeElement: HTMLElement) 分别为事件数据，节点数据，节点元素 |
+| nodeClick | 节点点击事件 | (event: DragEvent, data: NodeData, nodeElement: HTMLElement) 分别为事件数据，节点数据，节点元素 |
+| nodeDblclick | 节点双击事件 | (event: DragEvent, data: NodeData, nodeElement: HTMLElement) 分别为事件数据，节点数据，节点元素 |
+| nodeRightClick | 节点右键点击事件 | (event: DragEvent, data: NodeData, nodeElement: HTMLElement) 分别为事件数据，节点数据，节点元素 |
+| currentNodeChange | 当前节点改变事件 | (data: NodeData) 节点数据 |
+| start | 拖拽开始事件 | (event: DragEvent, data: NodeData, nodeElement: HTMLElement) 分别为事件数据，节点数据，节点元素 |
+| enter | 拖拽进入事件 | (event: DragEvent, data: NodeData, nodeElement: HTMLElement) 分别为事件数据，节点数据，节点元素 |
+| over | 拖拽进入后在节点内持续触发 | (event: DragEvent, data: NodeData, nodeElement: HTMLElement) 分别为事件数据，节点数据，节点元素 |
+| leave | 拖拽离开事件 | (event: DragEvent, data: NodeData, nodeElement: HTMLElement) 分别为事件数据，节点数据，节点元素 |
+| dropped | 节点放下事件 | (event: DragEvent, data: NodeData, nodeElement: HTMLElement, extraData: DroppedExtraData) 分别为事件数据，节点数据，节点元素，额外数据（type: 拖拽放下位置, isPreventDefault: 是否阻止默认操作, preventDefault: 调用后阻止默认操作, _default?: 调用后立即执行默认操作（仅放下子事件拥有）） |
+| droppedBefore | 放在节点前事件 | (event: DragEvent, dragData: NodeData[], dropData: NodeData, extraData: DroppedExtraData) 分别为事件数据，拖拽节点数据列表，放下节点数据，额外数据（type: 拖拽放下位置, isPreventDefault: 是否阻止默认操作, preventDefault: 调用后阻止默认操作, _default?: 调用后立即执行默认操作（仅放下子事件拥有 |
+| droppedIn | 放在节点内事件 | (event: DragEvent, dragData: NodeData[], dropData: NodeData, extraData: DroppedExtraData) 分别为事件数据，拖拽节点数据列表，放下节点数据，额外数据（type: 拖拽放下位置, isPreventDefault: 是否阻止默认操作, preventDefault: 调用后阻止默认操作, _default?: 调用后立即执行默认操作（仅放下子事件拥有 |
+| droppedAfter | 放在节点后事件 | (event: DragEvent, dragData: NodeData[], dropData: NodeData, extraData: DroppedExtraData) 分别为事件数据，拖拽节点数据列表，放下节点数据，额外数据（type: 拖拽放下位置, isPreventDefault: 是否阻止默认操作, preventDefault: 调用后阻止默认操作, _default?: 调用后立即执行默认操作（仅放下子事件拥有 |
+| end | 拖拽结束事件 | (event: DragEvent, data: NodeData, nodeElement: HTMLElement) 分别为事件数据，节点数据，节点元素 |
 
 ### 3、方法
 
@@ -115,15 +116,15 @@ const data = ref<TreeNode[]>([
 | clearMultipleList | 清除选择节点 |  |  |
 | getMoveList| 获取多选列表，多选列表为空时返回元素为当前节点数据的列表 |  |  |
 | filter | 执行过滤 | 接受一个参数并指定为 filter-method 的第一个参数 |  |
-| setCurrentData | 设置当前选中节点的数据 | (data: any) 节点数据 |  |
+| setCurrentData | 设置当前选中节点的数据 | (data: NodeData) 节点数据 |  |
 | getCurrentData | 获取当前选中节点的数据 |  |  |
 | findById | 通过节点主键值查找节点数据 | (id: any, data?: any[]) 分别为节点主键值，（可选）查找的节点数据 |  |
 | findParentById | 通过节点主键值查找父节点数据，没有则返回 null | (id: any) 分别为节点主键值 |  |
 | removeData | 移除节点 | (dataList: any[]) 节点数据列表 |  |
-| addData | 添加节点 | (dataList: any[], parentData: any, insertIndex = 0) 分别为节点数据列表，父节点数据，插入的下标（默认0） |  |
-| moveBefore | 移动到节点前 | (dragData: any[], dropData: any) 分别为拖拽节点数据列表，放下节点数据 | 移动后的节点索引 |
-| moveIn | 移动到节点内 | (dragData: any[], dropData: any) 分别为拖拽节点数据列表，放下节点数据 | 移动后的节点索引 |
-| moveAfter | 移动到节点后 | (dragData: any[], dropData: any) 分别为拖拽节点数据列表，放下节点数据 | 移动后的节点索引 |
+| addData | 添加节点 | (dataList: any[], parentData: NodeData, insertIndex = 0) 分别为节点数据列表，父节点数据，插入的下标（默认0） |  |
+| moveBefore | 移动到节点前 | (dragData: NodeData[], dropData: NodeData) 分别为拖拽节点数据列表，放下节点数据 | 移动后的节点索引 |
+| moveIn | 移动到节点内 | (dragData: NodeData[], dropData: NodeData) 分别为拖拽节点数据列表，放下节点数据 | 移动后的节点索引 |
+| moveAfter | 移动到节点后 | (dragData: NodeData[], dropData: NodeData) 分别为拖拽节点数据列表，放下节点数据 | 移动后的节点索引 |
 
 ### 4、插槽
 

@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
-import type { DroppedExtraData } from './utils/interface';
+import type { DroppedExtraData, NodeData } from './utils/interface';
 import VueProjectTree from './components/ProjectTree.vue';
 
-interface TreeNode {
-    id: number;
-    label: string;
+
+interface TreeNode extends NodeData {
+    id?: number;
+    label?: string;
     children?: TreeNode[];
 };
 
@@ -54,20 +55,20 @@ const getData = () => {
     }, 1000);
 };
 
-const onCurrentNodeChange = (data: any) => {
+const onCurrentNodeChange = (data: TreeNode) => {
     currentNode.value = data;
 };
-const allowDrag = (data: any) => {
+const allowDrag = (data: TreeNode) => {
     if (data.id === 1) return false;
     if (data.id === 6) return false;
     if (data.id === 7) return false;
     return true;
 };
-const allowDrop = (data: any) => {
+const allowDrop = (data: TreeNode) => {
     if (data.id === 7) return false;
     return true;
 };
-const onDroppedIn = async (event: DragEvent, dragData: any[], dropData: any, extraData: DroppedExtraData) => {
+const onDroppedIn = async (event: DragEvent, dragData: TreeNode[], dropData: TreeNode, extraData: DroppedExtraData) => {
     !!event;
 
     if (dragItem) {
