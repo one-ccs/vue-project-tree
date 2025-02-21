@@ -313,7 +313,7 @@ const onDragEnd = (event: DragEvent, data: NodeData, nodeElement: HTMLElement) =
             width: var(--indent-width);
             text-align: center;
             transform: rotateZ(0deg);
-            transition: transform .2s ease-out;
+            transition: transform .5s ease-out;
         }
 
         .project-tree-node-icon {
