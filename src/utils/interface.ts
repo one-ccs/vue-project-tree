@@ -15,12 +15,13 @@ export interface VueProjectTreeProps {
     nodeIconSize?: number | string;
     filterMethod?: Function;
     draggable?: boolean;
-    sortable?: boolean;
     allowDrag?: Function;
     allowDrop?: Function;
+    dropOffset?: number;
 };
 
 export interface VueProjectTreeNodeProps {
+    parent: NodeData | null;
     data: NodeData;
     idKey: string;
     labelKey: string;
@@ -49,11 +50,15 @@ export interface NodeData {
     [key: string]: any;
     _isVisible?: boolean;
     _isCurrent?: boolean;
-    _isChecked?: boolean;
+    _isSelected?: boolean;
     _isExpanded?: boolean;
     _isExpandedOld?: boolean;
     _isMoving?: boolean;
     _isDropBefore?: boolean;
     _isDropIn?: boolean;
     _isDropAfter?: boolean;
+    _parent?: NodeData | null;
+    _id?: string | number;
+    _label?: string;
+    _children?: NodeData[];
 }

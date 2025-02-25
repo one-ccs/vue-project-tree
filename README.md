@@ -1,6 +1,6 @@
 # vue-project-tree
 
-![预览图](https://img-blog.csdnimg.cn/direct/a2270f23312d45e89610cdb524fb9d41.gif#pic_center)
+![预览图](https://i-blog.csdnimg.cn/blog_migrate/ce7cac49de9804038b00c04287c1d430.gif#pic_center)
 
 ## 一、使用
 
@@ -14,20 +14,21 @@
 
 3. 使用
 
-```javascript
+```vue
+<script setup lang="ts">
 import { ref } from 'vue';
 import VueProjectTree from "vue-project-tree";
 
-interface TreeNode {
-    id: number;
-    label: string;
+interface TreeNode extends NodeData {
+    id?: number;
+    label?: string;
     children?: TreeNode[];
 };
 
 const data = ref<TreeNode[]>([
     {
         id: 1,
-        label: "1 不允许拖拽",
+        label: "1",
         children: [
             {
                 id: 2,
@@ -51,17 +52,18 @@ const data = ref<TreeNode[]>([
     },
     {
         id: 6,
-        label: "6 不允许拖拽",
+        label: "6",
     },
     {
         id: 7,
-        label: "7 不允许拖拽、放下",
+        label: "7",
     },
 ]);
-```
+</script>
 
-```html
-<vue-project-tree :data="data"></vue-project-tree>
+<template>
+    <vue-project-tree :data="data"></vue-project-tree>
+</template>
 ```
 
 ## 二、API
@@ -84,11 +86,11 @@ const data = ref<TreeNode[]>([
 | expandHoverTime? | 拖拽时在节点上悬停多少毫秒展开该节点 | `number` | `380` |
 | nodeIcon? | 是否显示节点图标 | `boolean` | `false` |
 | nodeIconSize? | 节点图标大小 | `number \| string` | `20` |
-| filterMethod? | 过滤方法（需手动调用 `filter` 函数执行过滤） | `Function` | `() => true` |
+| filterMethod? | 过滤方法（需手动调用 `filter` 函数执行过滤） | `Function` | `(value: any, data: NodeData) => true` |
 | draggable? | 是否允许拖拽 | `boolean` | `false` |
-| sortable? | 是否允许排序 | `boolean` | `false` |
-| allowDrag? | 节点是否拖拽放下处理函数（返回 `true` 表示允许拖拽） | `Function` | `() => false` |
-| allowDrop? | 节点是否允许放下处理函数（返回 `true` 表示允许放下） | `Function` | `() => false` |
+| allowDrag? | 节点是否拖拽放下处理函数（返回 `true` 表示允许拖拽） | `Function` | `(data: NodeData) => false` |
+| allowDrop? | 节点是否允许放下处理函数（返回 `true` 表示允许放下） | `Function` | `(data: NodeData) => false` |
+| dropOffset? | 放下位置偏移量 | `number` | `8` |
 
 ### 2、事件
 
@@ -97,7 +99,7 @@ const data = ref<TreeNode[]>([
 | nodeClick | 节点点击事件 | (event: DragEvent, data: NodeData, nodeElement: HTMLElement) 分别为事件数据，节点数据，节点元素 |
 | nodeDblclick | 节点双击事件 | (event: DragEvent, data: NodeData, nodeElement: HTMLElement) 分别为事件数据，节点数据，节点元素 |
 | nodeRightClick | 节点右键点击事件 | (event: DragEvent, data: NodeData, nodeElement: HTMLElement) 分别为事件数据，节点数据，节点元素 |
-| currentNodeChange | 当前节点改变事件 | (data: NodeData) 节点数据 |
+| currentDataChange | 当前节点改变事件 | (data: NodeData | undefined) 节点数据 |
 | start | 拖拽开始事件 | (event: DragEvent, data: NodeData, nodeElement: HTMLElement) 分别为事件数据，节点数据，节点元素 |
 | enter | 拖拽进入事件 | (event: DragEvent, data: NodeData, nodeElement: HTMLElement) 分别为事件数据，节点数据，节点元素 |
 | over | 拖拽进入后在节点内持续触发 | (event: DragEvent, data: NodeData, nodeElement: HTMLElement) 分别为事件数据，节点数据，节点元素 |
@@ -106,22 +108,25 @@ const data = ref<TreeNode[]>([
 | droppedBefore | 放在节点前事件 | (event: DragEvent, dragData: NodeData[], dropData: NodeData, extraData: DroppedExtraData) 分别为事件数据，拖拽节点数据列表，放下节点数据，额外数据（type: 拖拽放下位置, isPreventDefault: 是否阻止默认操作, preventDefault: 调用后阻止默认操作, _default?: 调用后立即执行默认操作（仅放下子事件拥有 |
 | droppedIn | 放在节点内事件 | (event: DragEvent, dragData: NodeData[], dropData: NodeData, extraData: DroppedExtraData) 分别为事件数据，拖拽节点数据列表，放下节点数据，额外数据（type: 拖拽放下位置, isPreventDefault: 是否阻止默认操作, preventDefault: 调用后阻止默认操作, _default?: 调用后立即执行默认操作（仅放下子事件拥有 |
 | droppedAfter | 放在节点后事件 | (event: DragEvent, dragData: NodeData[], dropData: NodeData, extraData: DroppedExtraData) 分别为事件数据，拖拽节点数据列表，放下节点数据，额外数据（type: 拖拽放下位置, isPreventDefault: 是否阻止默认操作, preventDefault: 调用后阻止默认操作, _default?: 调用后立即执行默认操作（仅放下子事件拥有 |
-| end | 拖拽结束事件 | (event: DragEvent, data: NodeData, nodeElement: HTMLElement) 分别为事件数据，节点数据，节点元素 |
+| end | 拖拽结束事件 | (event: DragEvent, data: [NodeData, NodeData], nodeElement: [HTMLElement, HTMLElement]) 分别为事件数据，[开始节点数据，结束节点数据]，[开始节点元素，结束节点元素] |
 
 ### 3、方法
 
 | 方法 | 描述 | 参数 | 返回值 |
 | --- | --- | --- | --- |
-| getMultipleList | 获取选择节点的 data 数据 |  |  |
-| clearMultipleList | 清除选择节点 |  |  |
-| getMoveList| 获取多选列表，多选列表为空时返回元素为当前节点数据的列表 |  |  |
-| filter | 执行过滤 | 接受一个参数并指定为 filter-method 的第一个参数 |  |
-| setCurrentData | 设置当前选中节点的数据 | (data: NodeData) 节点数据 |  |
-| getCurrentData | 获取当前选中节点的数据 |  |  |
-| findById | 通过节点主键值查找节点数据 | (id: any, data?: any[]) 分别为节点主键值，（可选）查找的节点数据 |  |
-| findParentById | 通过节点主键值查找父节点数据，没有则返回 null | (id: any) 分别为节点主键值 |  |
-| removeData | 移除节点 | (dataList: any[]) 节点数据列表 |  |
-| addData | 添加节点 | (dataList: any[], parentData: NodeData, insertIndex = 0) 分别为节点数据列表，父节点数据，插入的下标（默认0） |  |
+| getMultipleList | 获取多选列表 |  | NodeData[] |
+| setMultipleList | 设置多选列表 | (dataList: NodeData[]) 需要多选的节点列表 |  |
+| clearMultipleList | 清除多选列表 |  |  |
+| toggleSelected | 切换节点选中状态 | (data: NodeData) 节点数据 |  |
+| toggleExpanded | 切换节点展开状态 | (data: NodeData) 节点数据 |  |
+| expandAll | 展开所有节点 |  |  |
+| collapseAll | 收起所有节点 |  |  |
+| filter | 立即调用 `filterMethod` 对节点进行过滤 | (value: any) 作为 `filterMethod` 的第一个参数 |  |
+| findById | 通过节点主键值查找节点数据 | (id: string \| number) 节点主键值 | NodeData \| null |
+| getParent | 获取节点的父节点数据，没有则返回 null | (data: NodeData) 节点数据 | NodeData \| null |
+| hasChild | 递归判断父节点是否包含该子节点 | (parent: NodeData, data: NodeData) 分别为父节点数据，子节点数据 | boolean |
+| removeData | 移除节点 | (dataList: NodeData[]) 节点数据列表 |  |
+| insertData | 插入节点 | (parentData: NodeData, dataList: NodeData[], insertIndex = 0) 分别为父节点数据，节点数据列表，插入的下标（默认0） |  |
 | moveBefore | 移动到节点前 | (dragData: NodeData[], dropData: NodeData) 分别为拖拽节点数据列表，放下节点数据 | 移动后的节点索引 |
 | moveIn | 移动到节点内 | (dragData: NodeData[], dropData: NodeData) 分别为拖拽节点数据列表，放下节点数据 | 移动后的节点索引 |
 | moveAfter | 移动到节点后 | (dragData: NodeData[], dropData: NodeData) 分别为拖拽节点数据列表，放下节点数据 | 移动后的节点索引 |
@@ -130,5 +135,24 @@ const data = ref<TreeNode[]>([
 
 | 插槽名 | 说明 | 域 |
 | --- | --- | --- |
-| nodeIcon | 自定义展开图标 | { data, size } 分别为节点数据，展开图标大小 |
+| expandIcon | 自定义展开图标 | { data, size } 分别为节点数据，展开图标大小 |
 | nodeIcon | 自定义节点图标 | { data, size } 分别为节点数据，节点图标大小 |
+| label | 自定义节点标签 | { data } 节点数据 |
+
+### 5、CSS 变量
+
+| 名称 | 说明 | 默认值 |
+| --- | --- | --- |
+| --color | 文本颜色 | `#666666` |
+| --color-current | 当前选中节点文本颜色 | `#4C74F6` |
+| --color-drop-in | 放入节点文本颜色 | `#fff` |
+| --bg-color| 背景色 | `transparent` |
+| --bg-color-current | 当前选中节点背景色 | `#E0EFFF` |
+| --bg-color-selected | 选中节点背景色 | `#E0EFFF` |
+| --bg-color-hover | 悬停节点背景色 | `#0000000a` |
+| --bg-color-drop-in | 放入节点背景色 | `#409eff` |
+
+
+### 6、注意事项
+
+- 拖动节点时，若页面样式发生变动，会导致节点错位，进而导致拖拽事件不完整，致使节点样式错乱或数据丢失。

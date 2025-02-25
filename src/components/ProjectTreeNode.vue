@@ -3,13 +3,13 @@
         class="project-tree-node"
         :class="{
             'is-current': highlightCurrent && currentData && currentData[idKey] === data[idKey],
-            'is-expanded': safeBoolean(data._isExpanded, true),
-            'is-checked': safeBoolean(data._isChecked),
-            'moving': safeBoolean(data._isMoving),
+            'is-expanded': data._isExpanded,
+            'is-selected': data._isSelected,
+            'is-moving': data._isMoving,
         }"
-        v-show="safeBoolean(data._isVisible, true)"
+        v-show="data._isVisible"
         ref="projectTreeNodeRef"
-        :draggable="safeBoolean(draggable && allowDrag(data))"
+        :draggable="draggable && allowDrag(data)"
         @dragstart.self="onDragStart($event, data, projectTreeNodeRef)"
         @dragend.self="onDragEnd($event, data, projectTreeNodeRef)"
     >
@@ -55,14 +55,18 @@
             </div>
             <!-- 节点标签 -->
             <div class="project-tree-label">
-                <div v-if="safeBoolean(data._isDropBefore)" class="project-tree-label-drag-top-line"></div>
+                <div v-if="data._isDropBefore" class="project-tree-label-drag-top-line"></div>
                 <div
                     class="project-tree-label-text"
                     :class="{
-                        'is-drop-in': safeBoolean(data._isDropIn),
+                        'is-drop-in': data._isDropIn,
                     }"
-                >{{ data.label }}</div>
-                <div v-if="safeBoolean(data._isDropAfter)" class="project-tree-label-drag-bottom-line"></div>
+                >
+                    <slot name="label" :data="data">
+                        <span>{{ data._label }}</span>
+                    </slot>
+                </div>
+                <div v-if="data._isDropAfter" class="project-tree-label-drag-bottom-line"></div>
             </div>
         </div>
         <!-- 子节点 -->
@@ -70,11 +74,12 @@
             <expand-transition>
                 <div
                     class="project-tree-node__children"
-                    v-show="safeBoolean(data._isExpanded, true)"
+                    v-show="data._isExpanded"
                 >
                     <template v-for="node in data[childrenKey]" :key="node">
                         <project-tree-node
                             v-if="node ? true : (console.warn(`未渲染节点, 无效的节点数据(${node})`), false)"
+                            :parent="data"
                             :data="node"
                             :id-key="idKey"
                             :label-key="labelKey"
@@ -90,7 +95,8 @@
                             @expand-click="onExpandClick"
                             @node-click.self="onNodeClick"
                             @node-dblclick="onNodeDblclick"
-                            @node-right-click="onNodeRightClick" :draggable="draggable"
+                            @node-right-click="onNodeRightClick"
+                            :draggable="draggable"
                             :allow-drag="allowDrag"
                             :allow-drop="allowDrop"
                             @start="onDragStart"
@@ -100,10 +106,10 @@
                             @dropped="onDropped"
                             @end="onDragEnd"
                         >
-                            <template #expandIcon="slotProps: { data : any, size: number }">
+                            <template #expandIcon="slotProps: { data : NodeData, size: number }">
                                 <slot name="expandIcon" :data="slotProps.data" :size="slotProps.size"></slot>
                             </template>
-                            <template #nodeIcon="slotProps: { data : any, size: number }">
+                            <template #nodeIcon="slotProps: { data : NodeData, size: number }">
                                 <slot name="nodeIcon" :data="slotProps.data" :size="slotProps.size"></slot>
                             </template>
                         </project-tree-node>
@@ -115,14 +121,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, toRefs } from "vue";
+import { ref, toRefs, watchEffect } from "vue";
 import type { VueProjectTreeNodeProps, NodeData } from "../utils/interface.ts";
-import { safeBoolean } from "../utils/common.js";
 import ExpandTransition from "./ExpandTransition.vue";
 
 const props = defineProps<VueProjectTreeNodeProps>();
 
 const {
+    parent,
     data,
     idKey,
     labelKey,
@@ -139,6 +145,35 @@ const {
     allowDrag,
     allowDrop,
 } = toRefs(props);
+
+// 设置节点的不可枚举属性和默认值
+Object.entries({
+    _isVisible: data.value._isVisible === undefined ? true : data.value._isVisible,
+    _isCurrent: data.value._isCurrent === undefined ? false : data.value._isCurrent,
+    _isSelected: data.value._isSelected === undefined ? false : data.value._isSelected,
+    _isExpanded: data.value._isExpanded === undefined ? true : data.value._isExpanded,
+    _isExpandedOld: data.value._isExpandedOld === undefined ? true : data.value._isExpandedOld,
+    _isMoving: data.value._isMoving === undefined ? false : data.value._isMoving,
+    _isDropBefore: data.value._isDropBefore === undefined ? false : data.value._isDropBefore,
+    _isDropIn: data.value._isDropIn === undefined ? false : data.value._isDropIn,
+    _isDropAfter: data.value._isDropAfter === undefined ? false : data.value._isDropAfter,
+    _parent: undefined,
+    _id: undefined,
+    _label: undefined,
+    _children: undefined,
+}).forEach(([key, value]: [string, any]) => {
+    Object.defineProperty(data.value, key, {
+        value,
+        writable: true,
+        enumerable: false,
+    });
+});
+watchEffect(() => {
+    data.value._parent = parent.value;
+    data.value._id = data.value[idKey.value];
+    data.value._label = data.value[labelKey.value];
+    data.value._children = data.value[childrenKey.value];
+});
 
 const projectTreeNodeRef = ref<HTMLDivElement>(null as any);
 
@@ -205,7 +240,7 @@ const onDragEnd = (event: DragEvent, data: NodeData, nodeElement: HTMLElement) =
     --color-drop-in: #fff;
     --bg-color: transparent;
     --bg-color-current: #E0EFFF;
-    --bg-color-checked: #E0EFFF;
+    --bg-color-selected: #E0EFFF;
     --bg-color-hover: #0000000a;
     --bg-color-drop-in: #409eff;
     white-space: nowrap;
@@ -214,6 +249,7 @@ const onDragEnd = (event: DragEvent, data: NodeData, nodeElement: HTMLElement) =
 
     /* 当前节点样式 */
     &.is-current {
+
         .project-tree-node__content {
             --color: var(--color-current);
         }
@@ -228,8 +264,8 @@ const onDragEnd = (event: DragEvent, data: NodeData, nodeElement: HTMLElement) =
     }
 
     /* 选中节点样式 */
-    &.is-checked {
-        background-color: var(--bg-color-checked);
+    &.is-selected {
+        background-color: var(--bg-color-selected);
     }
 
     /* 展开节点样式 */
@@ -242,7 +278,7 @@ const onDragEnd = (event: DragEvent, data: NodeData, nodeElement: HTMLElement) =
     }
 
     /* 拖拽中样式 */
-    &.moving {
+    &.is-moving {
         .transparent {
             color: transparent;
             background: transparent;

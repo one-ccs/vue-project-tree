@@ -12,8 +12,7 @@ interface TreeNode extends NodeData {
 
 const treeRef = ref<any>(null);
 const treeData = ref<TreeNode[]>([]);
-const currentNode = ref(treeData.value[0]);
-let dragItem = <number | null>null;
+const currentData = ref<TreeNode | undefined>(undefined);
 
 // 模拟异步加载数据
 const getData = () => {
@@ -39,7 +38,7 @@ const getData = () => {
                     },
                     {
                         id: 5,
-                        label: "5 禁止放入节点内部，可以放在前或后",
+                        label: "5 该节点被被拖放到节点内部时，不会真的移动",
                     },
                 ],
             },
@@ -55,8 +54,9 @@ const getData = () => {
     }, 1000);
 };
 
-const onCurrentNodeChange = (data: TreeNode) => {
-    currentNode.value = data;
+const t = ref(0);
+const onCurrentDataChange = (data: TreeNode | undefined) => {
+    t.value++;
 };
 const allowDrag = (data: TreeNode) => {
     if (data.id === 1) return false;
@@ -71,6 +71,7 @@ const allowDrop = (data: TreeNode) => {
 const onDroppedIn = async (event: DragEvent, dragData: TreeNode[], dropData: TreeNode, extraData: DroppedExtraData) => {
     !!event;
 
+    const dragItem = event.dataTransfer?.getData('text/plain');
     if (dragItem) {
         extraData.preventDefault();
         if (!dropData.children) dropData.children = [];
@@ -105,20 +106,23 @@ onMounted(() => {
 
 <template>
     <div class="wrapper">
+        <p>当前节点 id：{{ currentData?.id }}</p>
+        <p>当前节点变化次数：{{ t }}</p>
+        <hr>
         <span
             class="item"
-            v-for="i in [1,2,3,4,5]"
+            v-for="i in ['1','2','3','4','5']"
             draggable="true"
-            @dragstart="dragItem = i, treeRef.setCurrentData(null)"
-            @dragend="dragItem = null"
+            @dragstart="(event: DragEvent) => event.dataTransfer?.setData('text/plain', i)"
         >{{ i }}</span>
+        <hr>
         <vue-project-tree
             ref="treeRef"
+            v-model="currentData"
             :data="treeData"
             node-icon
-            @current-node-change="onCurrentNodeChange"
+            @current-data-change="onCurrentDataChange"
             draggable
-            sortable
             :allow-drag="allowDrag"
             :allow-drop="allowDrop"
             @dropped-in="onDroppedIn"
@@ -136,6 +140,10 @@ html, body {
 .wrapper {
     padding: 8px;
 
+    & > p {
+        padding: 0;
+        margin: 0;
+    }
     .item {
         margin-right: 8px;
         border-radius: 8px;
@@ -145,7 +153,6 @@ html, body {
     }
     .vue-project-tree {
         margin-top: 12px;
-        border-top: 1px solid #000;
     }
 }
 </style>
