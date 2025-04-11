@@ -120,6 +120,7 @@ onMounted(() => {
             ref="treeRef"
             v-model="currentData"
             :data="treeData"
+            checkbox
             node-icon
             @current-data-change="onCurrentDataChange"
             draggable
@@ -152,6 +153,7 @@ html, body {
         box-shadow: 0 0 6px -2px #333;
     }
     .vue-project-tree {
+        --color-current: unset;
         margin-top: 12px;
     }
 }

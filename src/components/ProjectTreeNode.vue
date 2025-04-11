@@ -4,7 +4,7 @@
         :class="{
             'is-current': highlightCurrent && currentData && currentData[idKey] === data[idKey],
             'is-expanded': data._isExpanded,
-            'is-selected': data._isSelected,
+            'is-checked': data._isChecked,
             'is-moving': data._isMoving,
         }"
         v-show="data._isVisible"
@@ -38,6 +38,36 @@
                 <slot name="expandIcon" :data="data" :size="expandIconSize">
                     <svg viewBox="0 0 1024 1024" fill="currentColor" :width="expandIconSize" :height="expandIconSize">
                         <path d="M322.58048 852.35712a34.05824 34.05824 0 0 1-8.51968-48.9472l192.14336-255.50848a59.65824 59.65824 0 0 0 0-71.80288l-192.14336-255.488a34.03776 34.03776 0 0 1 8.51968-48.9472 47.18592 47.18592 0 0 1 57.344 4.096l310.12864 276.70528a79.60576 79.60576 0 0 1 0 119.07072l-310.10816 276.6848a47.18592 47.18592 0 0 1-57.344 4.13696z" />
+                    </svg>
+                </slot>
+            </div>
+            <!-- 选择框 -->
+            <div
+                v-if="checkbox"
+                class="project-tree-icon project-tree-checkbox"
+                @click="onCheckboxClick($event, data, projectTreeNodeRef)"
+            >
+                <slot name="checkbox" :data="data" :size="checkboxSize">
+                    <!-- 选中 -->
+                    <svg
+                        v-if="data._isChecked"
+                        viewBox="0 0 1024 1024" fill="currentColor" :width="checkboxSize" :height="checkboxSize"
+                    >
+                        <path d="M810.667 128H213.333C166.4 128 128 166.4 128 213.333v597.334C128 857.6 166.4 896 213.333 896h597.334C857.6 896 896 857.6 896 810.667V213.333C896 166.4 857.6 128 810.667 128zm-384 597.333L213.333 512l59.734-59.733 153.6 153.6L750.933 281.6l59.734 59.733-384 384z"/>
+                    </svg>
+                    <!-- 半选 -->
+                    <svg
+                        v-else-if="getChildren(data).some(child => child._isChecked)"
+                        viewBox="0 0 1024 1024" fill="currentColor" :width="checkboxSize" :height="checkboxSize"
+                    >
+                        <defs><clipPath id="prefix__a"><path d="M123 123h778v778H123zm109 341v96h560v-96z"/></clipPath></defs><path d="M810.667 128H213.333C166.4 128 128 166.4 128 213.333v597.334C128 857.6 166.4 896 213.333 896h597.334C857.6 896 896 857.6 896 810.667V213.333C896 166.4 857.6 128 810.667 128z" clip-path="url(#prefix__a)"/>
+                    </svg>
+                    <!-- 未选 -->
+                    <svg
+                        v-else
+                        viewBox="0 0 1024 1024" fill="currentColor" :width="checkboxSize" :height="checkboxSize"
+                    >
+                        <path d="M810.667 213.333v597.334H213.333V213.333h597.334m0-85.333H213.333C166.4 128 128 166.4 128 213.333v597.334C128 857.6 166.4 896 213.333 896h597.334C857.6 896 896 857.6 896 810.667V213.333C896 166.4 857.6 128 810.667 128z"/>
                     </svg>
                 </slot>
             </div>
@@ -90,9 +120,12 @@
                             :expand-icon-hold="expandIconHold"
                             :expand-icon="expandIcon"
                             :expand-icon-size="expandIconSize"
+                            :checkbox="checkbox"
+                            :checkbox-size="checkboxSize"
                             :node-icon="nodeIcon"
                             :node-icon-size="nodeIconSize"
                             @expand-click="onExpandClick"
+                            @checkbox-click="onCheckboxClick"
                             @node-click.self="onNodeClick"
                             @node-dblclick="onNodeDblclick"
                             @node-right-click="onNodeRightClick"
@@ -123,7 +156,9 @@
 <script setup lang="ts">
 import { ref, toRefs, watchEffect } from "vue";
 import type { VueProjectTreeNodeProps, NodeData } from "../utils/interface.ts";
+import { getChildren } from "../utils/common.js";
 import ExpandTransition from "./ExpandTransition.vue";
+
 
 const props = defineProps<VueProjectTreeNodeProps>();
 
@@ -136,9 +171,11 @@ const {
     currentData,
     highlightCurrent,
     level,
-    expandIconHold,
     expandIcon,
     expandIconSize,
+    expandIconHold,
+    checkbox,
+    checkboxSize,
     nodeIcon,
     nodeIconSize,
     draggable,
@@ -148,19 +185,20 @@ const {
 
 // 设置节点的不可枚举属性和默认值
 Object.entries({
-    _isVisible: data.value._isVisible === undefined ? true : data.value._isVisible,
-    _isCurrent: data.value._isCurrent === undefined ? false : data.value._isCurrent,
-    _isSelected: data.value._isSelected === undefined ? false : data.value._isSelected,
-    _isExpanded: data.value._isExpanded === undefined ? true : data.value._isExpanded,
-    _isExpandedOld: data.value._isExpandedOld === undefined ? true : data.value._isExpandedOld,
-    _isMoving: data.value._isMoving === undefined ? false : data.value._isMoving,
-    _isDropBefore: data.value._isDropBefore === undefined ? false : data.value._isDropBefore,
-    _isDropIn: data.value._isDropIn === undefined ? false : data.value._isDropIn,
-    _isDropAfter: data.value._isDropAfter === undefined ? false : data.value._isDropAfter,
-    _parent: undefined,
-    _id: undefined,
-    _label: undefined,
-    _children: undefined,
+    _isVisible:     data.value._isVisible ?? true,
+    _isCurrent:     data.value._isCurrent ?? false,
+    _isChecked:     data.value._isChecked ?? false,
+    _isExpanded:    data.value._isExpanded ?? true,
+    _isExpandedOld: data.value._isExpandedOld ?? true,
+    _isMoving:      data.value._isMoving ?? false,
+    _isDropBefore:  data.value._isDropBefore ?? false,
+    _isDropIn:      data.value._isDropIn ?? false,
+    _isDropAfter:   data.value._isDropAfter ?? false,
+    _parent:        undefined,
+    _id:            undefined,
+    _label:         undefined,
+    _children:      undefined,
+    _level:         level.value,
 }).forEach(([key, value]: [string, any]) => {
     Object.defineProperty(data.value, key, {
         value,
@@ -180,6 +218,7 @@ const projectTreeNodeRef = ref<HTMLDivElement>(null as any);
 /* 注意：以下事件会层层冒泡，多次触发，请勿添加事务代码，仅抛出事件 */
 const emit = defineEmits<{
     (e: "expandClick", event: MouseEvent, data: NodeData, nodeElement: HTMLElement): void,
+    (e: "checkboxClick", event: MouseEvent, data: NodeData, nodeElement: HTMLElement): void,
     (e: "nodeClick", event: MouseEvent, data: NodeData, nodeElement: HTMLElement): void,
     (e: "nodeDblclick", event: MouseEvent, data: NodeData, nodeElement: HTMLElement): void,
     (e: "nodeRightClick", event: MouseEvent, data: NodeData, nodeElement: HTMLElement): void,
@@ -194,6 +233,10 @@ const emit = defineEmits<{
 // 展开节点图标点击事件
 const onExpandClick = (event: MouseEvent, data: NodeData, nodeElement: HTMLElement) => {
     emit("expandClick", event, data, nodeElement);
+};
+// 复选框单价事件
+const onCheckboxClick = (event: MouseEvent, data: NodeData, nodeElement: HTMLElement) => {
+    emit("checkboxClick", event, data, nodeElement);
 };
 // 节点单击事件
 const onNodeClick = (event: MouseEvent, data: NodeData, nodeElement: HTMLElement) => {
@@ -235,14 +278,6 @@ const onDragEnd = (event: DragEvent, data: NodeData, nodeElement: HTMLElement) =
 
 <style lang="less">
 .project-tree-node {
-    --color: #666666;
-    --color-current: #4C74F6;
-    --color-drop-in: #fff;
-    --bg-color: transparent;
-    --bg-color-current: #E0EFFF;
-    --bg-color-selected: #E0EFFF;
-    --bg-color-hover: #0000000a;
-    --bg-color-drop-in: #409eff;
     white-space: nowrap;
     color: var(--color);
     background-color: var(--bg-color);
@@ -264,8 +299,8 @@ const onDragEnd = (event: DragEvent, data: NodeData, nodeElement: HTMLElement) =
     }
 
     /* 选中节点样式 */
-    &.is-selected {
-        background-color: var(--bg-color-selected);
+    &.is-checked {
+        background-color: var(--bg-color-checked);
     }
 
     /* 展开节点样式 */
@@ -338,18 +373,25 @@ const onDragEnd = (event: DragEvent, data: NodeData, nodeElement: HTMLElement) =
                 height: 100%;
             }
         }
+
         .project-tree-icon {
             display: flex;
             flex-direction: row;
             align-items: center;
             justify-content: center;
         }
+
         .project-tree-expand-icon {
             flex: 0 0 auto;
             width: var(--indent-width);
             text-align: center;
             transform: rotateZ(0deg);
             transition: transform .5s ease-out;
+        }
+
+        .project-tree-checkbox {
+            flex: 0 0 auto;
+            width: var(--indent-width);
         }
 
         .project-tree-node-icon {

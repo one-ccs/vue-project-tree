@@ -84,6 +84,8 @@ const data = ref<TreeNode[]>([
 | expandIconHold? | 没有子节点时是否保留位置 | `boolean` | `false` |
 | expandWithClick? | 是否在点击节点时展开 | `boolean` | `true` |
 | expandHoverTime? | 拖拽时在节点上悬停多少毫秒展开该节点 | `number` | `380` |
+| checkbox? | 是否显示复选框 | `boolean` | `false` |
+| checkboxSize? | 复选框大小 | `number \| string` | `20` |
 | nodeIcon? | 是否显示节点图标 | `boolean` | `false` |
 | nodeIconSize? | 节点图标大小 | `number \| string` | `20` |
 | filterMethod? | 过滤方法（需手动调用 `filter` 函数执行过滤） | `Function` | `(value: any, data: NodeData) => true` |
@@ -117,13 +119,15 @@ const data = ref<TreeNode[]>([
 | getMultipleList | 获取多选列表 |  | NodeData[] |
 | setMultipleList | 设置多选列表 | (dataList: NodeData[]) 需要多选的节点列表 |  |
 | clearMultipleList | 清除多选列表 |  |  |
-| toggleSelected | 切换节点选中状态 | (data: NodeData) 节点数据 |  |
+| toggleChecked | 切换节点选中状态 | (data: NodeData) 节点数据 |  |
 | toggleExpanded | 切换节点展开状态 | (data: NodeData) 节点数据 |  |
 | expandAll | 展开所有节点 |  |  |
 | collapseAll | 收起所有节点 |  |  |
 | filter | 立即调用 `filterMethod` 对节点进行过滤 | (value: any) 作为 `filterMethod` 的第一个参数 |  |
 | findById | 通过节点主键值查找节点数据 | (id: string \| number) 节点主键值 | NodeData \| null |
+| getLinealParents | 获取节点的所有直系父节点数据列表 | (data: NodeData) 节点数据 | NodeData[] |
 | getParent | 获取节点的父节点数据，没有则返回 null | (data: NodeData) 节点数据 | NodeData \| null |
+| getChildren | 获取节点的所有子节点数据列表 | (data: NodeData) 节点数据 | NodeData[] |
 | hasChild | 递归判断父节点是否包含该子节点 | (parent: NodeData, data: NodeData) 分别为父节点数据，子节点数据 | boolean |
 | removeData | 移除节点 | (dataList: NodeData[]) 节点数据列表 |  |
 | insertData | 插入节点 | (parentData: NodeData, dataList: NodeData[], insertIndex = 0) 分别为父节点数据，节点数据列表，插入的下标（默认0） |  |
@@ -136,6 +140,7 @@ const data = ref<TreeNode[]>([
 | 插槽名 | 说明 | 域 |
 | --- | --- | --- |
 | expandIcon | 自定义展开图标 | { data, size } 分别为节点数据，展开图标大小 |
+| checkbox | 自定义复选框 | { data, size } 分别为节点数据，复选框大小 |
 | nodeIcon | 自定义节点图标 | { data, size } 分别为节点数据，节点图标大小 |
 | label | 自定义节点标签 | { data } 节点数据 |
 
@@ -148,7 +153,7 @@ const data = ref<TreeNode[]>([
 | --color-drop-in | 放入节点文本颜色 | `#fff` |
 | --bg-color| 背景色 | `transparent` |
 | --bg-color-current | 当前选中节点背景色 | `#E0EFFF` |
-| --bg-color-selected | 选中节点背景色 | `#E0EFFF` |
+| --bg-color-checked | 选中节点背景色 | `#E0EFFF` |
 | --bg-color-hover | 悬停节点背景色 | `#0000000a` |
 | --bg-color-drop-in | 放入节点背景色 | `#409eff` |
 

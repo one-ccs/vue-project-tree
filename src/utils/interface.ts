@@ -11,6 +11,8 @@ export interface VueProjectTreeProps {
     expandIconHold?: boolean;
     expandWithClick?: boolean;
     expandHoverTime?: 380;
+    checkbox?: boolean;
+    checkboxSize?: number | string;
     nodeIcon?: boolean;
     nodeIconSize?: number | string;
     filterMethod?: Function;
@@ -32,6 +34,8 @@ export interface VueProjectTreeNodeProps {
     expandIcon: boolean;
     expandIconSize: number | string;
     expandIconHold: boolean;
+    checkbox: boolean;
+    checkboxSize: number | string;
     nodeIcon: boolean;
     nodeIconSize: number | string;
     draggable: boolean;
@@ -50,7 +54,7 @@ export interface NodeData {
     [key: string]: any;
     _isVisible?: boolean;
     _isCurrent?: boolean;
-    _isSelected?: boolean;
+    _isChecked?: boolean;
     _isExpanded?: boolean;
     _isExpandedOld?: boolean;
     _isMoving?: boolean;
@@ -61,4 +65,5 @@ export interface NodeData {
     _id?: string | number;
     _label?: string;
     _children?: NodeData[];
+    _level?: number;
 }

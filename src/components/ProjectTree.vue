@@ -18,9 +18,12 @@
                 :expand-icon-hold="props.expandIconHold"
                 :expand-icon="props.expandIcon"
                 :expand-icon-size="_expandIconSize"
+                :checkbox="props.checkbox"
+                :checkbox-size="props.checkboxSize"
                 :node-icon="props.nodeIcon"
                 :node-icon-size="_nodeIconSize"
                 @expand-click="onExpandClick"
+                @checkbox-click="onCheckboxClick"
                 @node-click="onNodeClick"
                 @node-dblclick="onNodeDblclick"
                 @node-right-click="onNodeRightClick"
@@ -37,6 +40,9 @@
                 <template #expandIcon="{ data, size }">
                     <slot name="expandIcon" :data="data" :size="size"></slot>
                 </template>
+                <template #checkbox="{ data, size }">
+                    <slot name="checkbox" :data="data" :size="size"></slot>
+                </template>
                 <template #nodeIcon="{ data, size }">
                     <slot name="nodeIcon" :data="data" :size="size"></slot>
                 </template>
@@ -51,7 +57,7 @@
 <script setup lang="ts">
 import { computed, ref, watchEffect } from "vue";
 import type { VueProjectTreeProps, DroppedExtraData, NodeData } from "../utils/interface.ts";
-import { safeVolume } from "../utils/common.js";
+import { safeVolume, getChildren } from "../utils/common.js";
 import ProjectTreeNode from "./ProjectTreeNode.vue";
 
 defineOptions({
@@ -71,6 +77,8 @@ const props = withDefaults(defineProps<VueProjectTreeProps>(), {
     expandIconHold: false,
     expandWithClick: true,
     expandHoverTime: 380,
+    checkbox: false,
+    checkboxSize: 18,
     nodeIcon: false,
     nodeIconSize: 20,
     filterMethod: (value: any, data: NodeData) => true,
@@ -105,12 +113,12 @@ const _nodeIconSize = computed(() => {
 const projectTreeRef = ref<any>(null);
 // 虚拟根节点
 const virtualRoot = computed<NodeData>(() => ({
-    [props.idKey]: 0,
+    [props.idKey]: -1,
     [props.labelKey]: "虚拟根节点",
-    [props.childrenKey]: props.data,
+    [props.childrenKey]: undefined,
     _isVisible: true,
     _isCurrent: false,
-    _isSelected: false,
+    _isChecked: false,
     _isExpanded: true,
     _isExpandedOld: true,
     _isMoving: false,
@@ -118,13 +126,15 @@ const virtualRoot = computed<NodeData>(() => ({
     _isDropIn: false,
     _isDropAfter: false,
     _parent: null,
-    _id: 0,
+    _id: -1,
     _label: "虚拟根节点",
     _children: undefined,
+    _level: -1,
 }));
 watchEffect(() => {
     virtualRoot.value[props.childrenKey] = virtualRoot.value._children = props.data;
 });
+
 // 当前选中节点
 const currentData = defineModel<NodeData | undefined>({
     required: false,
@@ -143,24 +153,7 @@ const currentData = defineModel<NodeData | undefined>({
     },
 });
 // 多选列表
-const multipleList = new Proxy<NodeData[]>([], {
-    get: (target, prop, receiver) => {
-        // 修改 push 方法：
-        if (prop === "push") return (...items: NodeData[]) => {
-            items.forEach(item => {
-                //  若选中某元素的父元素，则从多选列表中移除该元素
-                const hasParent = target.filter(item2 => hasChild(item, item2));
-                hasParent.forEach(toggleSelected);
-                // 过滤重复元素
-                if (!target.includes(item)) {
-                    target.push(item);
-                }
-            });
-            return target.length;
-        };
-        return Reflect.get(target, prop, receiver);
-    },
-});
+const multipleList = ref<NodeData[]>([]);
 // 上次选中节点
 let _lastData = <NodeData | undefined>undefined;
 // 放下目标的 data
@@ -196,6 +189,11 @@ const onExpandClick = (event: MouseEvent, data: NodeData, nodeElement: HTMLEleme
     data._isExpanded = !data._isExpanded;
     emit("nodeClick", event, data, nodeElement);
 };
+// 复选框点击事件
+const onCheckboxClick = (event: MouseEvent, data: NodeData, nodeElement: HTMLElement) => {
+    toggleChecked(data);
+    emit("nodeClick", event, data, nodeElement);
+};
 // 节点单击事件
 const onNodeClick = (event: MouseEvent, data: NodeData, nodeElement: HTMLElement) => {
     if (event.ctrlKey && event.shiftKey) {
@@ -203,11 +201,11 @@ const onNodeClick = (event: MouseEvent, data: NodeData, nodeElement: HTMLElement
     }
     else if (event.ctrlKey) {
         // 选中上次点击元素
-        if (_lastData && !_lastData._isSelected) {
-            toggleSelected(_lastData);
+        if (_lastData && !_lastData._isChecked) {
+            toggleChecked(_lastData);
         }
         // 选中当前元素
-        toggleSelected(data);
+        toggleChecked(data);
     }
     else if (event.shiftKey) {
 
@@ -237,20 +235,18 @@ const onDragStart = (event: DragEvent, data: NodeData, nodeElement: HTMLElement)
     currentData.value = data;
 
     // 若拖拽的不是选中节点，则更正多选列表
-    if (!data._isSelected) {
+    if (!data._isChecked) {
         clearMultipleList();
-        toggleSelected(data);
+        toggleChecked(data);
     }
 
-    multipleList.forEach(data => {
-        // 异步设置移动状态，防止拖拽元素的样式显示错误
-        setTimeout(() => {
-            data._isMoving = true;
-        }, 0);
+    multipleList.value.forEach(data => {
+        data._isMoving = true;
         // 折叠节点
         data._isExpandedOld = data._isExpanded;
         data._isExpanded = false;
     });
+
     emit("nodeClick", event, data, nodeElement);
     emit("start", event, data, nodeElement);
 };
@@ -339,13 +335,13 @@ const onDropped = (event: DragEvent, data: NodeData, nodeElement: HTMLElement) =
 
     // 抛出子事件
     if (extraData.type === "before") {
-        onDroppedBefore(event, multipleList, data, extraData);
+        onDroppedBefore(event, getMultipleList(), data, extraData);
     }
     else if (extraData.type === "in") {
-        onDroppedIn(event, multipleList, data, extraData);
+        onDroppedIn(event, getMultipleList(), data, extraData);
     }
     else if (extraData.type === "after") {
-        onDroppedAfter(event, multipleList, data, extraData);
+        onDroppedAfter(event, getMultipleList(), data, extraData);
     }
 };
 // 节点拖拽放到节点前事件
@@ -374,25 +370,29 @@ const onDroppedAfter = (event: DragEvent, dragData: NodeData[], dropData: NodeDa
 };
 // 节点拖拽结束事件
 const onDragEnd = (event: DragEvent, data: NodeData, nodeElement: HTMLElement) => {
-    multipleList.forEach(data => {
+    multipleList.value.forEach(data => {
         // 取消移动状态
         data._isMoving = false
         // 还原节点展开状态
         data._isExpanded = data._isExpandedOld;
+        // 展开父节点
+        if (data._parent) data._parent._isExpanded = true;
     });
+
     // 默认的 data 和 nodeElement 为拖拽开始时的值，需在 dragenter 追踪变化
     emit("end", event, [data, _dropTargetData!], [nodeElement, _dropTargetElement!]);
 };
 
 // 判断节点是否允许放下，包括允许拖拽、允许放入、非选中状态、父节点非选中状态
 const _allowDrop = (data: NodeData): boolean => {
-    return props.allowDrop(data) && !data._isSelected && (!data._parent || _allowDrop(data._parent));
+    return props.allowDrop(data) && !data._isChecked && (!data._parent || _allowDrop(data._parent));
 };
 /**
  * 获取多选列表
  */
 const getMultipleList = (): NodeData[] => {
-    return multipleList;
+    const minLevel = Math.min(...multipleList.value.map(data => data._level!));
+    return multipleList.value.filter(data => data._level === minLevel);
 };
 /**
  * 设置多选列表
@@ -400,30 +400,42 @@ const getMultipleList = (): NodeData[] => {
  */
 const setMultipleList = (dataList: NodeData[]): void => {
     clearMultipleList();
-    multipleList.push(...dataList);
-    multipleList.forEach((data: NodeData) => data._isSelected = true);
+    multipleList.value.push(...dataList);
+    multipleList.value.forEach((data: NodeData) => data._isChecked = true);
 };
 /**
  * 清除多选列表
  */
 const clearMultipleList = (): void => {
-    if (multipleList.length) {
-        multipleList.forEach((data: NodeData) => data._isSelected = false);
-        multipleList.length = 0;
-    }
+    multipleList.value.forEach(data => data._isChecked = false)
+    multipleList.value.length = 0;
 };
 /**
  * 切换节点选中状态
  * @param data 节点数据
  */
-const toggleSelected = (data: NodeData) => {
-    if (data._isSelected) {
-        data._isSelected = false;
-        multipleList.splice(multipleList.indexOf(data), 1);
+const toggleChecked = (data: NodeData, isChecked?: boolean) => {
+    data._isChecked = isChecked ?? !data._isChecked;
+
+    if (data._children) data._children.forEach(child => toggleChecked(child, data._isChecked));
+    if (data._isChecked) {
+        if (!multipleList.value.includes(data)) multipleList.value.push(data);
+        getLinealParents(data).forEach(parent => {
+            if (parent._children?.every(child => child._isChecked)) {
+                parent._isChecked = true;
+                if (!multipleList.value.includes(parent)) multipleList.value.push(parent);
+            }
+        });
     }
     else {
-        data._isSelected = true;
-        multipleList.push(data);
+        const index = multipleList.value.indexOf(data);
+        if (index >= 0) multipleList.value.splice(index, 1);
+        getLinealParents(data).forEach(parent => {
+            const index = multipleList.value.indexOf(parent);
+            parent._isChecked = false;
+
+            if (index >= 0) multipleList.value.splice(index, 1);
+        });
     }
 };
 /**
@@ -490,6 +502,20 @@ const _findById = (id: string | number, root: NodeData): NodeData | null => {
     return null;
 };
 /**
+ * 获取节点的所有直系父节点数据列表
+ * @param data 节点数据
+ * @returns 直系父节点数据列表
+ */
+const getLinealParents = (data: NodeData): NodeData[] => {
+    const parents: NodeData[] = [];
+    let parent = data._parent;
+    while (parent) {
+        parents.push(parent);
+        parent = parent._parent;
+    }
+    return parents;
+};
+/**
  * 获取节点的父节点数据
  * @param data 节点数据
  * @returns 父节点数据
@@ -522,7 +548,7 @@ const hasChild = (parent: NodeData, data: NodeData): boolean => {
 const removeData = (dataList: NodeData[]) => {
     dataList.forEach((data: NodeData) => {
         const dataIndex = data._parent!._children!.indexOf(data);
-        data._parent!._children!.splice(dataIndex, 1);
+        if (dataIndex >= 0) data._parent!._children!.splice(dataIndex, 1);
     });
 };
 /**
@@ -634,13 +660,16 @@ defineExpose({
     getMultipleList,
     setMultipleList,
     clearMultipleList,
-    toggleSelected,
+    toggleChecked,
     toggleExpanded,
     expandAll,
     collapseAll,
     filter,
     findById,
+    getLinealParents,
     getParent,
+    getChildren,
+    hasChild,
     removeData,
     insertData,
     moveBefore,
@@ -653,6 +682,16 @@ defineExpose({
 .vue-project-tree {
     --indent-width: v-bind(_indent);
     --node-height: v-bind(_nodeHeight);
+
+    --color: #666666;
+    --color-current: #4C74F6;
+    --color-drop-in: #fff;
+    --bg-color: transparent;
+    --bg-color-current: #E0EFFF;
+    --bg-color-checked: #E0EFFF;
+    --bg-color-hover: #0000000a;
+    --bg-color-drop-in: #409eff;
+
     width: 100%;
     height: 100%;
 }
