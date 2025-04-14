@@ -55,7 +55,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watchEffect } from "vue";
+import { computed, ref, watchEffect, type Ref } from "vue";
 import type { VueProjectTreeProps, DroppedExtraData, NodeData } from "../utils/interface.ts";
 import { safeVolume, getChildren } from "../utils/common.js";
 import ProjectTreeNode from "./ProjectTreeNode.vue";
@@ -153,7 +153,16 @@ const currentData = defineModel<NodeData | undefined>({
     },
 });
 // 多选列表
-const multipleList = ref<NodeData[]>([]);
+const multipleList = ref<NodeData[]>([]) as Ref<NodeData[]> & {push: Function, remove: Function};
+multipleList.push = (data: NodeData) => {
+    if (!multipleList.value.includes(data)) multipleList.value.push(data);
+    data._isChecked = true;
+};
+multipleList.remove = (data: NodeData) => {
+    const index = multipleList.value.indexOf(data);
+    if (index !== -1) multipleList.value.splice(index, 1);
+    data._isChecked = false;
+};
 // 上次选中节点
 let _lastData = <NodeData | undefined>undefined;
 // 放下目标的 data
@@ -191,6 +200,7 @@ const onExpandClick = (event: MouseEvent, data: NodeData, nodeElement: HTMLEleme
 };
 // 复选框点击事件
 const onCheckboxClick = (event: MouseEvent, data: NodeData, nodeElement: HTMLElement) => {
+    currentData.value = data;
     toggleChecked(data);
     emit("nodeClick", event, data, nodeElement);
 };
@@ -237,10 +247,10 @@ const onDragStart = (event: DragEvent, data: NodeData, nodeElement: HTMLElement)
     // 若拖拽的不是选中节点，则更正多选列表
     if (!data._isChecked) {
         clearMultipleList();
-        toggleChecked(data);
+        toggleChecked(data, true);
     }
 
-    multipleList.value.forEach(data => {
+    getMultipleList().forEach(data => {
         data._isMoving = true;
         // 折叠节点
         data._isExpandedOld = data._isExpanded;
@@ -370,7 +380,7 @@ const onDroppedAfter = (event: DragEvent, dragData: NodeData[], dropData: NodeDa
 };
 // 节点拖拽结束事件
 const onDragEnd = (event: DragEvent, data: NodeData, nodeElement: HTMLElement) => {
-    multipleList.value.forEach(data => {
+    getMultipleList().forEach(data => {
         // 取消移动状态
         data._isMoving = false
         // 还原节点展开状态
@@ -391,8 +401,7 @@ const _allowDrop = (data: NodeData): boolean => {
  * 获取多选列表
  */
 const getMultipleList = (): NodeData[] => {
-    const minLevel = Math.min(...multipleList.value.map(data => data._level!));
-    return multipleList.value.filter(data => data._level === minLevel);
+    return multipleList.value.filter(child => child._parent && !child._parent._isChecked);
 };
 /**
  * 设置多选列表
@@ -415,27 +424,27 @@ const clearMultipleList = (): void => {
  * @param data 节点数据
  */
 const toggleChecked = (data: NodeData, isChecked?: boolean) => {
-    data._isChecked = isChecked ?? !data._isChecked;
+    const _isChecked = isChecked ?? !data._isChecked;
 
-    if (data._children) data._children.forEach(child => toggleChecked(child, data._isChecked));
-    if (data._isChecked) {
-        if (!multipleList.value.includes(data)) multipleList.value.push(data);
-        getLinealParents(data).forEach(parent => {
-            if (parent._children?.every(child => child._isChecked)) {
-                parent._isChecked = true;
-                if (!multipleList.value.includes(parent)) multipleList.value.push(parent);
-            }
-        });
+    if (data._children && data._children.length && _isChecked && data._children.some(child => !child._isChecked)) {
+        _setChecked(data, _isChecked, 'children');
     }
     else {
-        const index = multipleList.value.indexOf(data);
-        if (index >= 0) multipleList.value.splice(index, 1);
-        getLinealParents(data).forEach(parent => {
-            const index = multipleList.value.indexOf(parent);
-            parent._isChecked = false;
-
-            if (index >= 0) multipleList.value.splice(index, 1);
-        });
+        _setChecked(data, _isChecked, 'all');
+    }
+};
+const _setChecked = (data: NodeData, checked: boolean, mode: 'all' | 'children') => {
+    if (mode === 'all') {
+        if (checked) {
+            multipleList.push(data);
+        }
+        else {
+            multipleList.remove(data);
+            if (data._parent) multipleList.remove(data._parent);
+        }
+    }
+    if (data._children) {
+        data._children.forEach(child => _setChecked(child, checked, 'all'));
     }
 };
 /**
