@@ -6,7 +6,7 @@ const packageJson = require('../package.json');
 
 
 const sourceDir = path.resolve(__dirname, '../dist');
-const outputFile = path.resolve(__dirname, `../release/${packageJson.name}_${packageJson.version}.zip`);
+const outputFile = path.resolve(__dirname, `../${packageJson.name}_${packageJson.version}.zip`);
 
 
 if (!fs.existsSync(sourceDir)) {
