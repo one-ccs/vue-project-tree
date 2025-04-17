@@ -12,5 +12,20 @@ export default defineConfig({
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
-  }
+  },
+  build: {
+    lib: {
+      name: 'VueProjectTree',
+      entry: fileURLToPath(new URL('./index.ts', import.meta.url)),
+      formats: ['es', 'cjs'],
+    },
+    rollupOptions: {
+      external: ['vue'],
+      output: {
+        globals: {
+          vue: 'Vue',
+        },
+      },
+    },
+  },
 })

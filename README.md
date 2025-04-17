@@ -17,6 +17,7 @@
 
 3. 使用
 
+3.1. 工程化环境
 ```vue
 <script setup lang="ts">
 import { ref } from 'vue';
@@ -67,6 +68,60 @@ const data = ref<TreeNode[]>([
 <template>
     <vue-project-tree :data="data"></vue-project-tree>
 </template>
+```
+
+3.2. 浏览器环境
+```html
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>vue-project-tree</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <vue-project-tree :data="data" checkbox node-icon></vue-project-tree>
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+            "vue": "https://unpkg.com/vue@3/dist/vue.esm-browser.js"
+            }
+        }
+    </script>
+    <script type="module">
+        import { createApp, ref } from 'vue';
+        import VueProjectTree from './vue-project-tree.js';
+
+        const data = ref([{
+            'id': 123,
+            'label': 123,
+            'children': [{
+                'id': 456,
+                'label': 456,
+                'children': [{
+                    'id': 789,
+                    'label': 789
+                }]
+            }]
+        }]);
+
+        createApp({
+            components: {
+                VueProjectTree
+            },
+            data() {
+                return {
+                    data
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
 ```
 
 ## 二、API
