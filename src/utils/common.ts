@@ -16,12 +16,13 @@ export const safeVolume = (object: any, property: string, value: any) => {
  * @param data 节点数据
  * @returns 子节点数据列表
  */
-export const getChildren = (data: NodeData): NodeData[] => {
+export const getAllChildren = (data: NodeData): NodeData[] => {
     const children: NodeData[] = [];
+
     if (data._children) {
         data._children.forEach((child: NodeData) => {
             children.push(child);
-            children.push(...getChildren(child));
+            children.push(...getAllChildren(child));
         });
     }
     return children;

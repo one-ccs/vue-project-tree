@@ -1,10 +1,10 @@
 <template>
     <div
+        v-if="Array.isArray(props.data)"
         class="vue-project-tree"
         ref="projectTreeRef"
-        v-if="Array.isArray(props.data)"
     >
-        <template v-for="node in props.data" :key="node">
+        <template v-for="node in virtualRoot[props.childrenKey]" :key="node[props.idKey]">
             <project-tree-node
                 v-if="node ? true : (console.warn(`未渲染节点, 无效的节点数据(${node})`), false)"
                 :parent="virtualRoot"
@@ -57,7 +57,7 @@
 <script setup lang="ts">
 import { computed, ref, watchEffect, type Ref } from "vue";
 import type { VueProjectTreeProps, DroppedExtraData, NodeData } from "../utils/interface.ts";
-import { safeVolume, getChildren } from "../utils/common.js";
+import { safeVolume, getAllChildren } from "../utils/common.js";
 import ProjectTreeNode from "./ProjectTreeNode.vue";
 
 defineOptions({
@@ -74,7 +74,7 @@ const props = withDefaults(defineProps<VueProjectTreeProps>(), {
     highlightCurrent: true,
     expandIcon: true,
     expandIconSize: 12,
-    expandIconHold: false,
+    expandIconHold: 'show',
     expandWithClick: true,
     expandHoverTime: 380,
     checkbox: false,
@@ -152,6 +152,7 @@ const currentData = defineModel<NodeData | undefined>({
         return value;
     },
 });
+
 // 多选列表
 const multipleList = ref<NodeData[]>([]) as Ref<NodeData[]> & {push: Function, remove: Function};
 multipleList.push = (data: NodeData) => {
@@ -163,6 +164,7 @@ multipleList.remove = (data: NodeData) => {
     if (index !== -1) multipleList.value.splice(index, 1);
     data._isChecked = false;
 };
+
 // 上次选中节点
 let _lastData = <NodeData | undefined>undefined;
 // 放下目标的 data
@@ -195,7 +197,7 @@ const onCurrentDataChange = (data: NodeData | undefined) => {
 // 展开节点图标点击事件
 const onExpandClick = (event: MouseEvent, data: NodeData, nodeElement: HTMLElement) => {
     currentData.value = data;
-    data._isExpanded = !data._isExpanded;
+    toggleExpanded(data);
     emit("nodeClick", event, data, nodeElement);
 };
 // 复选框点击事件
@@ -221,10 +223,17 @@ const onNodeClick = (event: MouseEvent, data: NodeData, nodeElement: HTMLElement
 
     }
     else { // 普通单击
-        // 切换节点展开状态
-        if (props.expandWithClick) data._isExpanded = !data._isExpanded;
-        // 清除多选状态
-        clearMultipleList();
+
+        if (props.checkbox) {
+            if (!data._children?.every(child => child._isChecked)) clearMultipleList();
+            // 切换选中状态
+            toggleChecked(data);
+        }
+        else if (props.expandWithClick) {
+            clearMultipleList();
+            // 切换展开状态
+            toggleExpanded(data);
+        }
     }
     // 处理多选逻辑后设置当前节点
     currentData.value = data;
@@ -426,7 +435,7 @@ const clearMultipleList = (): void => {
 const toggleChecked = (data: NodeData, isChecked?: boolean) => {
     const _isChecked = isChecked ?? !data._isChecked;
 
-    if (data._children && data._children.length && _isChecked && data._children.some(child => !child._isChecked)) {
+    if (data._children?.some(child => !child._isChecked) && isChecked === void 0) {
         _setChecked(data, _isChecked, 'children');
     }
     else {
@@ -511,11 +520,11 @@ const _findById = (id: string | number, root: NodeData): NodeData | null => {
     return null;
 };
 /**
- * 获取节点的所有直系父节点数据列表
+ * 获取节点的所有父节点数据列表
  * @param data 节点数据
- * @returns 直系父节点数据列表
+ * @returns 父节点数据列表
  */
-const getLinealParents = (data: NodeData): NodeData[] => {
+const getParents = (data: NodeData): NodeData[] => {
     const parents: NodeData[] = [];
     let parent = data._parent;
     while (parent) {
@@ -531,6 +540,14 @@ const getLinealParents = (data: NodeData): NodeData[] => {
  */
 const getParent = (data: NodeData): NodeData | null => {
     return data._parent!;
+};
+/**
+ * 获取节点的子节点数据列表
+ * @param data 节点数据
+ * @returns 子节点数据列表
+ */
+const getChildren = (data: NodeData): NodeData[] | undefined => {
+    return data._children;
 };
 /**
  * 递归判断父节点是否包含该子节点
@@ -675,8 +692,9 @@ defineExpose({
     collapseAll,
     filter,
     findById,
-    getLinealParents,
+    getParents,
     getParent,
+    getAllChildren,
     getChildren,
     hasChild,
     removeData,

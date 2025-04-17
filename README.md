@@ -70,7 +70,7 @@ const data = ref<TreeNode[]>([
 </template>
 ```
 
-3.2. 浏览器环境
+3.2. 非工程化环境
 ```html
 <!DOCTYPE html>
 <html>
@@ -139,7 +139,7 @@ const data = ref<TreeNode[]>([
 | highlightCurrent? | 是否高亮当前选中节点 | `boolean` | `true` |
 | expandIcon? | 是否显示展开图标 | `boolean` | `true` |
 | expandIconSize? | 展开图标大小 | `number \| string` | `10` |
-| expandIconHold? | 没有子节点时是否保留位置 | `boolean` | `false` |
+| expandIconHold? | 没有子节点时展开节点的显示逻辑 | `'show' \| 'hide' \| 'hold'` | `show` |
 | expandWithClick? | 是否在点击节点时展开 | `boolean` | `true` |
 | expandHoverTime? | 拖拽时在节点上悬停多少毫秒展开该节点 | `number` | `380` |
 | checkbox? | 是否显示复选框 | `boolean` | `false` |
@@ -183,9 +183,10 @@ const data = ref<TreeNode[]>([
 | collapseAll | 收起所有节点 |  |  |
 | filter | 立即调用 `filterMethod` 对节点进行过滤 | (value: any) 作为 `filterMethod` 的第一个参数 |  |
 | findById | 通过节点主键值查找节点数据 | (id: string \| number) 节点主键值 | NodeData \| null |
-| getLinealParents | 获取节点的所有直系父节点数据列表 | (data: NodeData) 节点数据 | NodeData[] |
+| getParents | 获取节点的所有父节点数据列表 | (data: NodeData) 节点数据 | NodeData[] |
 | getParent | 获取节点的父节点数据，没有则返回 null | (data: NodeData) 节点数据 | NodeData \| null |
-| getChildren | 获取节点的所有子节点数据列表 | (data: NodeData) 节点数据 | NodeData[] |
+| getAllChildren | 获取节点的所有子节点数据列表 | (data: NodeData) 节点数据 | NodeData[] |
+| getChildren | 获取节点的子节点数据列表 | (data: NodeData) 节点数据 | NodeData[] \| undefined |
 | hasChild | 递归判断父节点是否包含该子节点 | (parent: NodeData, data: NodeData) 分别为父节点数据，子节点数据 | boolean |
 | removeData | 移除节点 | (dataList: NodeData[]) 节点数据列表 |  |
 | insertData | 插入节点 | (parentData: NodeData, dataList: NodeData[], insertIndex = 0) 分别为父节点数据，节点数据列表，插入的下标（默认0） |  |

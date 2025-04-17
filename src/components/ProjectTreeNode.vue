@@ -30,8 +30,8 @@
                 v-if="expandIcon"
                 class="project-tree-icon project-tree-expand-icon"
                 :style="{
-                    visibility: data[childrenKey]?.length ? 'visible' : 'hidden',
-                    display: !data[childrenKey]?.length && !expandIconHold ? 'none' : undefined,
+                    visibility: data[childrenKey]?.length || expandIconHold === 'show' ? 'visible' : 'hidden',
+                    display: !data[childrenKey]?.length && expandIconHold === 'hide' ? 'none' : undefined,
                 }"
                 @click="onExpandClick($event, data, projectTreeNodeRef)"
             >
@@ -57,7 +57,7 @@
                     </svg>
                     <!-- 半选 -->
                     <svg
-                        v-else-if="getChildren(data).some(child => child._isChecked)"
+                        v-else-if="getAllChildren(data).some(child => child._isChecked)"
                         viewBox="0 0 1024 1024" fill="currentColor" :width="checkboxSize" :height="checkboxSize"
                     >
                         <defs><clipPath id="prefix__a"><path d="M123 123h778v778H123zm109 341v96h560v-96z"/></clipPath></defs><path d="M810.667 128H213.333C166.4 128 128 166.4 128 213.333v597.334C128 857.6 166.4 896 213.333 896h597.334C857.6 896 896 857.6 896 810.667V213.333C896 166.4 857.6 128 810.667 128z" clip-path="url(#prefix__a)"/>
@@ -156,7 +156,7 @@
 <script setup lang="ts">
 import { ref, toRefs, watchEffect } from "vue";
 import type { VueProjectTreeNodeProps, NodeData } from "../utils/interface.ts";
-import { getChildren } from "../utils/common.js";
+import { getAllChildren } from "../utils/common.js";
 import ExpandTransition from "./ExpandTransition.vue";
 
 

@@ -8,7 +8,7 @@ export interface VueProjectTreeProps {
     highlightCurrent?: boolean;
     expandIcon?: boolean;
     expandIconSize?: number | string;
-    expandIconHold?: boolean;
+    expandIconHold?: 'show' | 'hide' | 'hold';
     expandWithClick?: boolean;
     expandHoverTime?: 380;
     checkbox?: boolean;
@@ -33,7 +33,7 @@ export interface VueProjectTreeNodeProps {
     level: number;
     expandIcon: boolean;
     expandIconSize: number | string;
-    expandIconHold: boolean;
+    expandIconHold: 'show' | 'hide' | 'hold';
     checkbox: boolean;
     checkboxSize: number | string;
     nodeIcon: boolean;
