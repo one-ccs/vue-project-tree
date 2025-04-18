@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import type { DroppedExtraData, NodeData } from './utils/interface';
-import VueProjectTree from './components/ProjectTree.vue';
+import VueProjectTree from '@/components/ProjectTree.vue';
 
 
 interface TreeNode extends NodeData {
@@ -50,7 +50,16 @@ const getData = () => {
                 id: 7,
                 label: "7 不允许拖拽、放下",
             },
+            {
+                id: 8,
+                label: "8 大量数据",
+                children: [],
+            }
         ];
+        // treeData.value[3].children = new Array(10000).fill(null).map((_, index) => ({
+        //     id: index + 1,
+        //     label: `item ${index + 1}`,
+        // }));
     }, 1000);
 };
 

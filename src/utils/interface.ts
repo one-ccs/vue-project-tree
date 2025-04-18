@@ -1,4 +1,4 @@
-export interface VueProjectTreeProps {
+export interface ProjectTreeNormalProps {
     data: NodeData[];
     idKey?: string;
     labelKey?: string;
@@ -22,7 +22,7 @@ export interface VueProjectTreeProps {
     dropOffset?: number;
 };
 
-export interface VueProjectTreeNodeProps {
+export interface ProjectTreeNormalNodeProps {
     parent: NodeData | null;
     data: NodeData;
     idKey: string;
