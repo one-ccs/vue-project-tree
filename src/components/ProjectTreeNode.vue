@@ -381,22 +381,27 @@ const onDragEnd = (event: DragEvent, data: NodeData, nodeElement: HTMLElement) =
             justify-content: center;
         }
 
-        .project-tree-expand-icon {
+        .project-tree-icon-button {
             flex: 0 0 auto;
             width: var(--indent-width);
+            height: var(--indent-width);
+        }
+
+        .project-tree-expand-icon {
+            .project-tree-icon-button;
+
             text-align: center;
             transform: rotateZ(0deg);
             transition: transform .5s ease-out;
         }
 
         .project-tree-checkbox {
-            flex: 0 0 auto;
-            width: var(--indent-width);
+            .project-tree-icon-button;
         }
 
         .project-tree-node-icon {
-            flex: 0 0 auto;
-            width: var(--indent-width);
+            .project-tree-icon-button;
+
             pointer-events: none;
         }
 
