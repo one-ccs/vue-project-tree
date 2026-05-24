@@ -24,11 +24,14 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
           package-manager-cache: false  # never use caching in release builds
 
-      - run: npm ci
-      - run: npm test --if-present
-      - run: npm run build --if-present
-      - run: npm pack --dry-run
-      - run: npm pack
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 10
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test --if-present
+      - run: pnpm run build --if-present
+      - run: pnpm pack --pack-destination .
 
       - name: Upload package artifact
         uses: actions/upload-artifact@v6
@@ -38,7 +41,7 @@ jobs:
 
       - name: Publish to npm
         if: startsWith(github.ref, 'refs/tags/')
-        run: npm publish --provenance --access public
+        run: pnpm publish --provenance --access public
 
       - name: Create GitHub Release
         if: startsWith(github.ref, 'refs/tags/')

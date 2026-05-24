@@ -56,8 +56,8 @@
 
 <script setup lang="ts">
 import { computed, ref, watchEffect, type Ref } from "vue";
-import type { VueProjectTreeProps, DroppedExtraData, NodeData } from "../utils/interface.ts";
-import { safeVolume, getAllChildren } from "../utils/common.js";
+import type { VueProjectTreeProps, DroppedExtraData, NodeData } from "../utils/interface";
+import { safeVolume, getAllChildren } from "../utils/common";
 import ProjectTreeNode from "./ProjectTreeNode.vue";
 
 defineOptions({
@@ -175,19 +175,19 @@ let _lastTimeStamp = 0;
 
 /* 注意：以下事件已经冒泡到顶层，仅触发一次 */
 const emit = defineEmits<{
-    (e: "nodeClick", event: MouseEvent, data: NodeData, nodeElement: HTMLElement): void,
-    (e: "nodeDblclick", event: MouseEvent, data: NodeData, nodeElement: HTMLElement): void,
-    (e: "nodeRightClick", event: MouseEvent, data: NodeData, nodeElement: HTMLElement): void,
-    (e: "currentDataChange", data: NodeData | undefined): void,
-    (e: "start", event: DragEvent, data: NodeData, nodeElement: HTMLElement): void,
-    (e: "enter", event: DragEvent, data: NodeData, nodeElement: HTMLElement): void,
-    (e: "over", event: DragEvent, data: NodeData, nodeElement: HTMLElement): void,
-    (e: "leave", event: DragEvent, data: NodeData, nodeElement: HTMLElement): void,
-    (e: "dropped", event: DragEvent, data: NodeData, nodeElement: HTMLElement, extraData: DroppedExtraData): void,
-    (e: "droppedBefore", event: DragEvent, dragData: NodeData[], dropData: NodeData, extraData: DroppedExtraData): void,
-    (e: "droppedIn", event: DragEvent, dragData: NodeData[], dropData: NodeData, extraData: DroppedExtraData): void,
-    (e: "droppedAfter", event: DragEvent, dragData: NodeData[], dropData: NodeData, extraData: DroppedExtraData): void,
-    (e: "end", event: DragEvent, data: [NodeData, NodeData], nodeElement: [HTMLElement, HTMLElement]): void,
+    nodeClick: [event: MouseEvent, data: NodeData, nodeElement: HTMLElement],
+    nodeDblclick: [event: MouseEvent, data: NodeData, nodeElement: HTMLElement],
+    nodeRightClick: [event: MouseEvent, data: NodeData, nodeElement: HTMLElement],
+    currentDataChange: [data: NodeData | undefined],
+    start: [event: DragEvent, data: NodeData, nodeElement: HTMLElement],
+    enter: [event: DragEvent, data: NodeData, nodeElement: HTMLElement],
+    over: [event: DragEvent, data: NodeData, nodeElement: HTMLElement],
+    leave: [event: DragEvent, data: NodeData, nodeElement: HTMLElement],
+    dropped: [event: DragEvent, data: NodeData, nodeElement: HTMLElement, extraData: DroppedExtraData],
+    droppedBefore: [event: DragEvent, dragData: NodeData[], dropData: NodeData, extraData: DroppedExtraData],
+    droppedIn: [event: DragEvent, dragData: NodeData[], dropData: NodeData, extraData: DroppedExtraData],
+    droppedAfter: [event: DragEvent, dragData: NodeData[], dropData: NodeData, extraData: DroppedExtraData],
+    end: [event: DragEvent, data: [NodeData, NodeData], nodeElement: [HTMLElement, HTMLElement]],
 }>();
 
 // 当前节点改变事件

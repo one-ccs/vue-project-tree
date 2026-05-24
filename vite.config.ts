@@ -2,13 +2,18 @@ import { fileURLToPath, URL } from 'node:url'
 
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
+import dts from 'vite-plugin-dts'
 
-import packageJson from './package.json'
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     vue(),
+    dts({
+      outDirs: ['dist'],
+      include: ['index.ts', 'src/**/*'],
+      tsconfigPath: './tsconfig.app.json',
+    }),
   ],
   resolve: {
     alias: {
@@ -27,8 +32,8 @@ export default defineConfig({
         globals: {
           vue: 'Vue',
         },
-        entryFileNames: `${packageJson.name}_${packageJson.version}.[format].min.js`,
-        assetFileNames: `${packageJson.name}_${packageJson.version}.[ext]`,
+        entryFileNames: `index.[format].min.js`,
+        assetFileNames: `index.[ext]`,
       },
     },
   },
