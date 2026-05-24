@@ -1,4 +1,4 @@
-import { NodeData } from "./interface";
+import type { NodeData } from "./interface";
 
 
 /**
