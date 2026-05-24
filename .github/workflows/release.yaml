@@ -22,22 +22,22 @@ jobs:
         with:
           node-version: 24
           registry-url: 'https://registry.npmjs.org'
-          package-manager-cache: false  # never use caching in release builds
+          package-manager-cache: false # never use caching in release builds
 
       - uses: pnpm/action-setup@v6
         with:
           version: 10
 
       - run: pnpm install --frozen-lockfile
-      - run: pnpm test --if-present
-      - run: pnpm run build --if-present
+      - run: pnpm run --if-present test
+      - run: pnpm run --if-present build
       - run: pnpm pack --pack-destination .
 
       - name: Upload package artifact
         uses: actions/upload-artifact@v6
         with:
           name: npm-package
-          path: "*.tgz"
+          path: '*.tgz'
 
       - name: Publish to npm
         if: startsWith(github.ref, 'refs/tags/')
@@ -47,6 +47,6 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v3
         with:
-          files: "*.tgz"
+          files: '*.tgz'
           name: ${{ github.ref_name }}
           generate_release_notes: true
