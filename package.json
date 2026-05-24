@@ -50,6 +50,7 @@
         "vue": "^3.5.13"
     },
     "devDependencies": {
+        "@changesets/cli": "^2.31.0",
         "@tsconfig/node20": "^20.1.4",
         "@types/node": "^20.12.5",
         "@vitejs/plugin-vue": "^5.2.3",
