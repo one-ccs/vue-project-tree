@@ -43,7 +43,9 @@
     "build": "vue-tsc --build --force && vite build",
     "preview": "vite preview",
     "build-only": "vite build",
-    "type-check": "vue-tsc --build --force"
+    "type-check": "vue-tsc --build --force",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "peerDependencies": {
     "vue": "^3.5.13"
@@ -55,6 +57,8 @@
     "@vitejs/plugin-vue": "^5.2.3",
     "@vue/tsconfig": "^0.5.1",
     "archiver": "^7.0.1",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
     "less": "^4.2.0",
     "npm-run-all2": "^6.1.2",
     "typescript": "~5.4.0",

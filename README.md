@@ -1,7 +1,7 @@
 # vue-project-tree
 
 使用 Vue3 + TS 不依赖其它第三方库，实现的树形结构展示组件，有拖拽、排序、节点过滤、多选、自定义图标等功能。
-覆写内置的 css变量可修改节点样式。
+覆写内置的 css 变量可修改节点样式。
 
 ![预览图](https://i-blog.csdnimg.cn/direct/fc7fff3eeabb4da7b335272eb54e8663.gif#pic_center)
 
@@ -182,27 +182,27 @@ const data = ref<TreeNode[]>([
 
 ### 3、方法
 
-| 方法              | 描述                                   | 参数                                                                                                              | 返回值                  |
-| ----------------- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ----------------------- |
-| getMultipleList   | 获取多选列表                           |                                                                                                                   | NodeData[]              |
-| setMultipleList   | 设置多选列表                           | (dataList: NodeData[]) 需要多选的节点列表                                                                         |                         |
-| clearMultipleList | 清除多选列表                           |                                                                                                                   |                         |
-| toggleChecked     | 切换节点选中状态                       | (data: NodeData) 节点数据                                                                                         |                         |
-| toggleExpanded    | 切换节点展开状态                       | (data: NodeData) 节点数据                                                                                         |                         |
-| expandAll         | 展开所有节点                           |                                                                                                                   |                         |
-| collapseAll       | 收起所有节点                           |                                                                                                                   |                         |
-| filter            | 立即调用 `filterMethod` 对节点进行过滤 | (value: any) 作为 `filterMethod` 的第一个参数                                                                     |                         |
-| findById          | 通过节点主键值查找节点数据             | (id: string \| number) 节点主键值                                                                                 | NodeData \| null        |
-| getParents        | 获取节点的所有父节点数据列表           | (data: NodeData) 节点数据                                                                                         | NodeData[]              |
-| getParent         | 获取节点的父节点数据，没有则返回 null  | (data: NodeData) 节点数据                                                                                         | NodeData \| null        |
-| getAllChildren    | 获取节点的所有子节点数据列表           | (data: NodeData) 节点数据                                                                                         | NodeData[]              |
-| getChildren       | 获取节点的子节点数据列表               | (data: NodeData) 节点数据                                                                                         | NodeData[] \| undefined |
-| hasChild          | 递归判断父节点是否包含该子节点         | (parent: NodeData, data: NodeData) 分别为父节点数据，子节点数据                                                   | boolean                 |
-| removeData        | 移除节点                               | (dataList: NodeData[]) 节点数据列表                                                                               |                         |
-| insertData        | 插入节点                               | (parentData: NodeData, dataList: NodeData[], insertIndex = 0) 分别为父节点数据，节点数据列表，插入的下标（默认0） |                         |
-| moveBefore        | 移动到节点前                           | (dragData: NodeData[], dropData: NodeData) 分别为拖拽节点数据列表，放下节点数据                                   | 移动后的节点索引        |
-| moveIn            | 移动到节点内                           | (dragData: NodeData[], dropData: NodeData) 分别为拖拽节点数据列表，放下节点数据                                   | 移动后的节点索引        |
-| moveAfter         | 移动到节点后                           | (dragData: NodeData[], dropData: NodeData) 分别为拖拽节点数据列表，放下节点数据                                   | 移动后的节点索引        |
+| 方法              | 描述                                   | 参数                                                                                                               | 返回值                  |
+| ----------------- | -------------------------------------- | ------------------------------------------------------------------------------------------------------------------ | ----------------------- |
+| getMultipleList   | 获取多选列表                           |                                                                                                                    | NodeData[]              |
+| setMultipleList   | 设置多选列表                           | (dataList: NodeData[]) 需要多选的节点列表                                                                          |                         |
+| clearMultipleList | 清除多选列表                           |                                                                                                                    |                         |
+| toggleChecked     | 切换节点选中状态                       | (data: NodeData) 节点数据                                                                                          |                         |
+| toggleExpanded    | 切换节点展开状态                       | (data: NodeData) 节点数据                                                                                          |                         |
+| expandAll         | 展开所有节点                           |                                                                                                                    |                         |
+| collapseAll       | 收起所有节点                           |                                                                                                                    |                         |
+| filter            | 立即调用 `filterMethod` 对节点进行过滤 | (value: any) 作为 `filterMethod` 的第一个参数                                                                      |                         |
+| findById          | 通过节点主键值查找节点数据             | (id: string \| number) 节点主键值                                                                                  | NodeData \| null        |
+| getParents        | 获取节点的所有父节点数据列表           | (data: NodeData) 节点数据                                                                                          | NodeData[]              |
+| getParent         | 获取节点的父节点数据，没有则返回 null  | (data: NodeData) 节点数据                                                                                          | NodeData \| null        |
+| getAllChildren    | 获取节点的所有子节点数据列表           | (data: NodeData) 节点数据                                                                                          | NodeData[]              |
+| getChildren       | 获取节点的子节点数据列表               | (data: NodeData) 节点数据                                                                                          | NodeData[] \| undefined |
+| hasChild          | 递归判断父节点是否包含该子节点         | (parent: NodeData, data: NodeData) 分别为父节点数据，子节点数据                                                    | boolean                 |
+| removeData        | 移除节点                               | (dataList: NodeData[]) 节点数据列表                                                                                |                         |
+| insertData        | 插入节点                               | (parentData: NodeData, dataList: NodeData[], insertIndex = 0) 分别为父节点数据，节点数据列表，插入的下标（默认 0） |                         |
+| moveBefore        | 移动到节点前                           | (dragData: NodeData[], dropData: NodeData) 分别为拖拽节点数据列表，放下节点数据                                    | 移动后的节点索引        |
+| moveIn            | 移动到节点内                           | (dragData: NodeData[], dropData: NodeData) 分别为拖拽节点数据列表，放下节点数据                                    | 移动后的节点索引        |
+| moveAfter         | 移动到节点后                           | (dragData: NodeData[], dropData: NodeData) 分别为拖拽节点数据列表，放下节点数据                                    | 移动后的节点索引        |
 
 ### 4、插槽
 

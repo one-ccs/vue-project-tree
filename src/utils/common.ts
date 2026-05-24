@@ -1,5 +1,4 @@
-import type { NodeData } from "./interface";
-
+import type { NodeData } from './interface';
 
 /**
  * 安全的属性赋值，如果对象存在且为对象，则赋值给对象属性
@@ -8,7 +7,7 @@ import type { NodeData } from "./interface";
  * @param value 值
  */
 export const safeVolume = (object: any, property: string, value: any) => {
-    object && typeof object === "object" && (object[property] = value);
+  object && typeof object === 'object' && (object[property] = value);
 };
 
 /**
@@ -17,13 +16,13 @@ export const safeVolume = (object: any, property: string, value: any) => {
  * @returns 子节点数据列表
  */
 export const getAllChildren = (data: NodeData): NodeData[] => {
-    const children: NodeData[] = [];
+  const children: NodeData[] = [];
 
-    if (data._children) {
-        data._children.forEach((child: NodeData) => {
-            children.push(child);
-            children.push(...getAllChildren(child));
-        });
-    }
-    return children;
+  if (data._children) {
+    data._children.forEach((child: NodeData) => {
+      children.push(child);
+      children.push(...getAllChildren(child));
+    });
+  }
+  return children;
 };
