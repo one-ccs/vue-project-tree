@@ -139,11 +139,11 @@
                             @dropped="onDropped"
                             @end="onDragEnd"
                         >
-                            <template #expandIcon="slotProps: { data : NodeData, size: number }">
-                                <slot name="expandIcon" :data="slotProps.data" :size="slotProps.size"></slot>
+                            <template #expandIcon="{data, size}">
+                                <slot name="expandIcon" :data="data" :size="size"></slot>
                             </template>
-                            <template #nodeIcon="slotProps: { data : NodeData, size: number }">
-                                <slot name="nodeIcon" :data="slotProps.data" :size="slotProps.size"></slot>
+                            <template #nodeIcon="{data, size}">
+                                <slot name="nodeIcon" :data="data" :size="size"></slot>
                             </template>
                         </project-tree-node>
                     </template>
@@ -155,10 +155,18 @@
 
 <script setup lang="ts">
 import { ref, toRefs, watchEffect } from "vue";
-import type { VueProjectTreeNodeProps, NodeData } from "../utils/interface.ts";
-import { getAllChildren } from "../utils/common.js";
+import type { VueProjectTreeNodeProps, NodeData } from "../utils/interface";
+import { getAllChildren } from "../utils/common";
 import ExpandTransition from "./ExpandTransition.vue";
 
+// 显式定义 slot 类型，避免递归组件的循环类型推断导致 TS7022
+defineSlots<{
+    expandIcon(props: { data: NodeData; size: number | string }): any;
+    nodeIcon(props: { data: NodeData; size: number | string }): any;
+    checkbox(props: { data: NodeData; size: number | string }): any;
+    label(props: { data: NodeData }): any;
+    default(): any;
+}>();
 
 const props = defineProps<VueProjectTreeNodeProps>();
 
@@ -217,17 +225,17 @@ const projectTreeNodeRef = ref<HTMLDivElement>(null as any);
 
 /* 注意：以下事件会层层冒泡，多次触发，请勿添加事务代码，仅抛出事件 */
 const emit = defineEmits<{
-    (e: "expandClick", event: MouseEvent, data: NodeData, nodeElement: HTMLElement): void,
-    (e: "checkboxClick", event: MouseEvent, data: NodeData, nodeElement: HTMLElement): void,
-    (e: "nodeClick", event: MouseEvent, data: NodeData, nodeElement: HTMLElement): void,
-    (e: "nodeDblclick", event: MouseEvent, data: NodeData, nodeElement: HTMLElement): void,
-    (e: "nodeRightClick", event: MouseEvent, data: NodeData, nodeElement: HTMLElement): void,
-    (e: "start", event: DragEvent, data: NodeData, nodeElement: HTMLElement): void,
-    (e: "enter", event: DragEvent, data: NodeData, nodeElement: HTMLElement): void,
-    (e: "over", event: DragEvent, data: NodeData, nodeElement: HTMLElement): void,
-    (e: "leave", event: DragEvent, data: NodeData, nodeElement: HTMLElement): void,
-    (e: "dropped", event: DragEvent, data: NodeData, nodeElement: HTMLElement): void,
-    (e: "end", event: DragEvent, data: NodeData, nodeElement: HTMLElement): void,
+    expandClick: [event: MouseEvent, data: NodeData, nodeElement: HTMLElement],
+    checkboxClick: [event: MouseEvent, data: NodeData, nodeElement: HTMLElement],
+    nodeClick: [event: MouseEvent, data: NodeData, nodeElement: HTMLElement],
+    nodeDblclick: [event: MouseEvent, data: NodeData, nodeElement: HTMLElement],
+    nodeRightClick: [event: MouseEvent, data: NodeData, nodeElement: HTMLElement],
+    start: [event: DragEvent, data: NodeData, nodeElement: HTMLElement],
+    enter: [event: DragEvent, data: NodeData, nodeElement: HTMLElement],
+    over: [event: DragEvent, data: NodeData, nodeElement: HTMLElement],
+    leave: [event: DragEvent, data: NodeData, nodeElement: HTMLElement],
+    dropped: [event: DragEvent, data: NodeData, nodeElement: HTMLElement],
+    end: [event: DragEvent, data: NodeData, nodeElement: HTMLElement],
 }>();
 
 // 展开节点图标点击事件

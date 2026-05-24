@@ -21,11 +21,24 @@
         "url": "https://github.com/one-ccs/vue-project-tree/issues"
     },
     "private": false,
+    "packageManager": "pnpm@10.27.0",
+    "main": "./dist/index.cjs.min.js",
+    "module": "./dist/index.es.min.js",
+    "style": "./dist/index.css",
+    "types": "./dist/index.d.ts",
     "files": [
-        "src/*",
-        "index.ts"
+        "dist",
+        "README.md"
     ],
     "type": "module",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.es.min.js",
+            "require": "./dist/index.cjs.min.js"
+        },
+        "./style.css": "./dist/index.css"
+    },
     "scripts": {
         "dev": "vite",
         "build": "vue-tsc --build --force && vite build",
@@ -33,7 +46,7 @@
         "build-only": "vite build",
         "type-check": "vue-tsc --build --force"
     },
-    "dependencies": {
+    "peerDependencies": {
         "vue": "^3.5.13"
     },
     "devDependencies": {
@@ -46,6 +59,7 @@
         "npm-run-all2": "^6.1.2",
         "typescript": "~5.4.0",
         "vite": "^5.2.8",
+        "vite-plugin-dts": "^5.0.1",
         "vue-tsc": "^2.0.11"
     }
 }

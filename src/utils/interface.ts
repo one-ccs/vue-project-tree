@@ -17,8 +17,8 @@ export interface VueProjectTreeProps {
     nodeIconSize?: number | string;
     filterMethod?: Function;
     draggable?: boolean;
-    allowDrag?: Function;
-    allowDrop?: Function;
+    allowDrag?: (data: NodeData) => boolean;
+    allowDrop?: (data: NodeData) => boolean;
     dropOffset?: number;
 };
 
@@ -39,8 +39,8 @@ export interface VueProjectTreeNodeProps {
     nodeIcon: boolean;
     nodeIconSize: number | string;
     draggable: boolean;
-    allowDrag: Function;
-    allowDrop: Function;
+    allowDrag: (data: NodeData) => boolean;
+    allowDrop: (data: NodeData) => boolean;
 };
 
 export interface DroppedExtraData {
