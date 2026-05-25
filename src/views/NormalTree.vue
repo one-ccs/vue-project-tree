@@ -15,49 +15,49 @@ const currentData = ref<TreeNode>();
 
 // 模拟异步加载数据
 const getData = (): Promise<TreeNode[]> => {
-  const { promise, resolve } = Promise.withResolvers<TreeNode[]>();
-  setTimeout(() => {
-    resolve([
-      {
-        id: 1,
-        label: '1 不允许拖拽',
-        children: [
-          {
-            id: 2,
-            label: '2 延迟异步放入',
-            children: [
-              {
-                id: 3,
-                label: '3',
-              },
-              {
-                id: 4,
-                label: '4',
-              },
-            ],
-          },
-          {
-            id: 5,
-            label: '5 该节点被被拖放到节点内部时，不会真的移动',
-          },
-        ],
-      },
-      {
-        id: 6,
-        label: '6 不允许拖拽',
-      },
-      {
-        id: 7,
-        label: '7 不允许拖拽、放下',
-      },
-      {
-        id: 8,
-        label: '8 大量数据',
-        children: [],
-      },
-    ]);
-  }, 1000);
-  return promise;
+  return new Promise<TreeNode[]>(resolve => {
+    setTimeout(() => {
+      resolve([
+        {
+          id: 1,
+          label: '1 不允许拖拽',
+          children: [
+            {
+              id: 2,
+              label: '2 延迟异步放入',
+              children: [
+                {
+                  id: 3,
+                  label: '3',
+                },
+                {
+                  id: 4,
+                  label: '4',
+                },
+              ],
+            },
+            {
+              id: 5,
+              label: '5 该节点被被拖放到节点内部时，不会真的移动',
+            },
+          ],
+        },
+        {
+          id: 6,
+          label: '6 不允许拖拽',
+        },
+        {
+          id: 7,
+          label: '7 不允许拖拽、放下',
+        },
+        {
+          id: 8,
+          label: '8 大量数据',
+          children: [],
+        },
+      ]);
+    }, 1000);
+  });
 };
 
 const t = ref(0);
@@ -117,7 +117,7 @@ const filterMethod = (value: any, data: NodeData) => {
 };
 const onSearch = (event: Event) => {
   const value = (event.target as HTMLInputElement).value;
-  treeRef.value?.filter(value);
+  (treeRef.value as any)?.filter(value);
 };
 
 onMounted(async () => {
@@ -133,9 +133,7 @@ onMounted(async () => {
       class="item"
       v-for="i in ['1', '2', '3', '4', '5']"
       draggable="true"
-      @dragstart="
-        (event: DragEvent) => event.dataTransfer?.setData('text/plain', i)
-      "
+      @dragstart="(event: DragEvent) => event.dataTransfer?.setData('text/plain', i)"
       >{{ i }}</span
     >
     <hr />

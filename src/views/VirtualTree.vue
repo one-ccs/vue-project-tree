@@ -38,12 +38,11 @@ const createData = (
 };
 // 模拟异步加载数据
 const getData = (): Promise<TreeNode[]> => {
-  const { promise, resolve } = Promise.withResolvers<TreeNode[]>();
-
-  setTimeout(() => {
-    resolve(createData(3, 50, 5));
-  }, 1000);
-  return promise;
+  return new Promise<TreeNode[]>(resolve => {
+    setTimeout(() => {
+      resolve(createData(3, 50, 5));
+    }, 1000);
+  });
 };
 
 const t = ref(0);
@@ -64,9 +63,7 @@ onMounted(async () => {
       class="item"
       v-for="i in ['1', '2', '3', '4', '5']"
       draggable="true"
-      @dragstart="
-        (event: DragEvent) => event.dataTransfer?.setData('text/plain', i)
-      "
+      @dragstart="(event: DragEvent) => event.dataTransfer?.setData('text/plain', i)"
       >{{ i }}</span
     >
     <hr />
@@ -81,6 +78,7 @@ onMounted(async () => {
       node-icon
       @current-data-change="onCurrentDataChange"
       draggable
+      :height="500"
     >
     </vue-project-tree>
   </div>

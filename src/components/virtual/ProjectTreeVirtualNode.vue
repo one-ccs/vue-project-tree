@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { ref, watchEffect } from 'vue';
+import { ref } from 'vue';
 import type { ProjectTreeNodeProps, NodeData } from '@/utils/interface.js';
 import { getAllChildren } from '@/utils/common.js';
-import ExpandTransition from '@/components/transition/ExpandTransition.vue';
 
 const {
   virtual,
@@ -26,37 +25,7 @@ const {
   allowDrop,
 } = defineProps<ProjectTreeNodeProps>();
 
-// 设置节点的不可枚举属性和默认值
-Object.entries({
-  _isVisible: data._isVisible ?? !virtual,
-  _isCurrent: data._isCurrent ?? false,
-  _isChecked: data._isChecked ?? false,
-  _isExpanded: data._isExpanded ?? !virtual,
-  _isExpandedOld: data._isExpandedOld ?? !virtual,
-  _isMoving: data._isMoving ?? false,
-  _isDropBefore: data._isDropBefore ?? false,
-  _isDropIn: data._isDropIn ?? false,
-  _isDropAfter: data._isDropAfter ?? false,
-  _parent: undefined,
-  _id: undefined,
-  _label: undefined,
-  _children: undefined,
-  _level: level,
-}).forEach(([key, value]: [string, any]) => {
-  Object.defineProperty(data, key, {
-    value,
-    writable: true,
-    enumerable: false,
-  });
-});
-watchEffect(() => {
-  data._parent = parent;
-  data._id = data[idKey];
-  data._label = data[labelKey];
-  data._children = data[childrenKey];
-});
-
-const ProjectTreeNormalNodeRef = ref<HTMLDivElement>(null as any);
+const nodeRef = ref<HTMLDivElement>(null as any);
 
 /* 注意：以下事件会层层冒泡，多次触发，请勿添加事务代码，仅抛出事件 */
 const emit = defineEmits<{
@@ -74,75 +43,74 @@ const emit = defineEmits<{
 }>();
 
 // 展开节点图标点击事件
-const onExpandClick = (event: MouseEvent, data: NodeData, nodeElement: HTMLElement) => {
-  emit('expandClick', event, data, nodeElement);
+const onExpandClick = (event: MouseEvent) => {
+  emit('expandClick', event, data, nodeRef.value);
 };
-// 复选框单价事件
-const onCheckboxClick = (event: MouseEvent, data: NodeData, nodeElement: HTMLElement) => {
-  emit('checkboxClick', event, data, nodeElement);
+// 复选框点击事件
+const onCheckboxClick = (event: MouseEvent) => {
+  emit('checkboxClick', event, data, nodeRef.value);
 };
 // 节点单击事件
-const onNodeClick = (event: MouseEvent, data: NodeData, nodeElement: HTMLElement) => {
-  emit('nodeClick', event, data, nodeElement);
+const onNodeClick = (event: MouseEvent) => {
+  emit('nodeClick', event, data, nodeRef.value);
 };
 // 节点双击事件
-const onNodeDblclick = (event: MouseEvent, data: NodeData, nodeElement: HTMLElement) => {
-  emit('nodeDblclick', event, data, nodeElement);
+const onNodeDblclick = (event: MouseEvent) => {
+  emit('nodeDblclick', event, data, nodeRef.value);
 };
 // 节点右键单击事件
-const onNodeRightClick = (event: MouseEvent, data: NodeData, nodeElement: HTMLElement) => {
-  emit('nodeRightClick', event, data, nodeElement);
+const onNodeRightClick = (event: MouseEvent) => {
+  emit('nodeRightClick', event, data, nodeRef.value);
 };
 // 节点拖拽开始事件
-const onDragStart = (event: DragEvent, data: NodeData, nodeElement: HTMLElement) => {
-  emit('start', event, data, nodeElement);
+const onDragStart = (event: DragEvent) => {
+  emit('start', event, data, nodeRef.value);
 };
 // 节点拖拽进入事件
-const onDragEnter = (event: DragEvent, data: NodeData, nodeElement: HTMLElement) => {
-  emit('enter', event, data, nodeElement);
+const onDragEnter = (event: DragEvent) => {
+  emit('enter', event, data, nodeRef.value);
 };
 // 节点拖拽 over 事件
-const onDragOver = (event: DragEvent, data: NodeData, nodeElement: HTMLElement) => {
-  emit('over', event, data, nodeElement);
+const onDragOver = (event: DragEvent) => {
+  emit('over', event, data, nodeRef.value);
 };
-// 节点拖拽；离开事件
-const onDragLeave = (event: DragEvent, data: NodeData, nodeElement: HTMLElement) => {
-  emit('leave', event, data, nodeElement);
+// 节点拖拽离开事件
+const onDragLeave = (event: DragEvent) => {
+  emit('leave', event, data, nodeRef.value);
 };
 // 节点拖拽放下事件
-const onDropped = (event: DragEvent, data: NodeData, nodeElement: HTMLElement) => {
-  emit('dropped', event, data, nodeElement);
+const onDropped = (event: DragEvent) => {
+  emit('dropped', event, data, nodeRef.value);
 };
 // 节点拖拽结束事件
-const onDragEnd = (event: DragEvent, data: NodeData, nodeElement: HTMLElement) => {
-  emit('end', event, data, nodeElement);
+const onDragEnd = (event: DragEvent) => {
+  emit('end', event, data, nodeRef.value);
 };
 </script>
 
 <template>
   <div
-    class="project-tree-normal-node"
+    class="project-tree-virtual-node"
     :class="{
       'is-current': highlightCurrent && currentData && currentData[idKey] === data[idKey],
       'is-expanded': data._isExpanded,
       'is-checked': data._isChecked,
       'is-moving': data._isMoving,
     }"
-    v-show="data._isVisible"
-    ref="ProjectTreeNormalNodeRef"
+    ref="nodeRef"
     :draggable="draggable && allowDrag(data)"
-    @dragstart.self="onDragStart($event, data, ProjectTreeNormalNodeRef)"
-    @dragend.self="onDragEnd($event, data, ProjectTreeNormalNodeRef)"
+    @dragstart.self="onDragStart($event)"
+    @dragend.self="onDragEnd($event)"
   >
     <div
       class="project-tree__content"
-      @click.self="onNodeClick($event, data, ProjectTreeNormalNodeRef)"
-      @dblclick.self="onNodeDblclick($event, data, ProjectTreeNormalNodeRef)"
-      @contextmenu.self="onNodeRightClick($event, data, ProjectTreeNormalNodeRef)"
-      @dragenter.self="onDragEnter($event, data, ProjectTreeNormalNodeRef)"
-      @dragover.self="onDragOver($event, data, ProjectTreeNormalNodeRef)"
-      @dragleave.self="onDragLeave($event, data, ProjectTreeNormalNodeRef)"
-      @drop="onDropped($event, data, ProjectTreeNormalNodeRef)"
+      @click.self="onNodeClick($event)"
+      @dblclick.self="onNodeDblclick($event)"
+      @contextmenu.self="onNodeRightClick($event)"
+      @dragenter.self="onDragEnter($event)"
+      @dragover.self="onDragOver($event)"
+      @dragleave.self="onDragLeave($event)"
+      @drop="onDropped($event)"
     >
       <!-- 缩进 -->
       <div class="project-tree_indent" v-for="_ in level" />
@@ -154,7 +122,7 @@ const onDragEnd = (event: DragEvent, data: NodeData, nodeElement: HTMLElement) =
           visibility: data[childrenKey]?.length || expandIconHold === 'show' ? 'visible' : 'hidden',
           display: !data[childrenKey]?.length && expandIconHold === 'hide' ? 'none' : undefined,
         }"
-        @click="onExpandClick($event, data, ProjectTreeNormalNodeRef)"
+        @click="onExpandClick($event)"
       >
         <slot name="expandIcon" :data="data" :size="expandIconSize">
           <svg
@@ -170,11 +138,7 @@ const onDragEnd = (event: DragEvent, data: NodeData, nodeElement: HTMLElement) =
         </slot>
       </div>
       <!-- 选择框 -->
-      <div
-        v-if="checkbox"
-        class="project-tree_icon checkbox"
-        @click="onCheckboxClick($event, data, ProjectTreeNormalNodeRef)"
-      >
+      <div v-if="checkbox" class="project-tree_icon checkbox" @click="onCheckboxClick($event)">
         <slot name="checkbox" :data="data" :size="checkboxSize">
           <!-- 选中 -->
           <svg
@@ -254,60 +218,11 @@ const onDragEnd = (event: DragEvent, data: NodeData, nodeElement: HTMLElement) =
         <div v-if="data._isDropAfter" class="drag-bottom-line"></div>
       </div>
     </div>
-    <!-- 子节点 -->
-    <template v-if="data[childrenKey]?.length">
-      <expand-transition>
-        <div class="project-tree__children" v-show="data._isExpanded">
-          <template v-for="node in data[childrenKey]" :key="node">
-            <project-tree-normal-node
-              v-if="node ? true : (console.warn(`未渲染节点, 无效的节点数据(${node})`), false)"
-              :virtual="virtual"
-              :parent="data"
-              :data="node"
-              :id-key="idKey"
-              :label-key="labelKey"
-              :children-key="childrenKey"
-              :current-data="currentData"
-              :highlight-current="highlightCurrent"
-              :level="level + 1"
-              :expand-icon-hold="expandIconHold"
-              :expand-icon="expandIcon"
-              :expand-icon-size="expandIconSize"
-              :checkbox="checkbox"
-              :checkbox-size="checkboxSize"
-              :node-icon="nodeIcon"
-              :node-icon-size="nodeIconSize"
-              @expand-click="onExpandClick"
-              @checkbox-click="onCheckboxClick"
-              @node-click.self="onNodeClick"
-              @node-dblclick="onNodeDblclick"
-              @node-right-click="onNodeRightClick"
-              :draggable="draggable"
-              :allow-drag="allowDrag"
-              :allow-drop="allowDrop"
-              @start="onDragStart"
-              @enter="onDragEnter"
-              @leave="onDragLeave"
-              @over="onDragOver"
-              @dropped="onDropped"
-              @end="onDragEnd"
-            >
-              <template
-                v-for="(_, name) in $slots"
-                #[name]="slotData: { data: NodeData, size?: number }"
-              >
-                <slot :name="name" v-bind="slotData || {}"></slot>
-              </template>
-            </project-tree-normal-node>
-          </template>
-        </div>
-      </expand-transition>
-    </template>
   </div>
 </template>
 
 <style lang="less">
-.project-tree-normal-node {
+.project-tree-virtual-node {
   white-space: nowrap;
   color: var(--color);
   background-color: var(--bg-color);

@@ -21,6 +21,7 @@ export interface ProjectTreeProps {
   allowDrag?: (data: NodeData) => boolean;
   allowDrop?: (data: NodeData) => boolean;
   dropOffset?: number;
+  height?: number | string;
 }
 
 export interface ProjectTreeNodeProps {
