@@ -49,24 +49,45 @@ const t = ref(0);
 const onCurrentDataChange = (data: TreeNode | undefined) => {
   t.value++;
 };
+const allowDrop = (data: TreeNode) => {
+  return true;
+};
+const onDroppedIn = async (
+  event: DragEvent,
+  dragData: TreeNode[],
+  dropData: TreeNode,
+  extraData: DroppedExtraData
+) => {
+  const dragItem = event.dataTransfer?.getData('text/plain');
+  if (dragItem) {
+    extraData.preventDefault();
+    if (!dropData.children) dropData.children = [];
+
+    dropData.children.push({
+      id: `${dropData.id}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      label: `item ${dragItem}`,
+    });
+    return;
+  }
+};
+
+const filterMethod = (value: any, data: NodeData) => {
+  return data._label?.includes(value);
+};
+const doFilter = (value: any) => {
+  (treeRef.value as any)?.filter(value);
+};
 
 onMounted(async () => {
   treeData.value = await getData();
 });
+
+defineExpose({ doFilter });
 </script>
 
 <template>
   <div class="normal">
     <h3>虚拟滚动树</h3>
-    <hr />
-    <span
-      class="item"
-      v-for="i in ['1', '2', '3', '4', '5']"
-      draggable="true"
-      @dragstart="(event: DragEvent) => event.dataTransfer?.setData('text/plain', i)"
-      >{{ i }}</span
-    >
-    <hr />
     <p>当前节点 id：{{ currentData?.id }}</p>
     <p>当前节点变化次数：{{ t }}</p>
     <vue-project-tree
@@ -77,8 +98,11 @@ onMounted(async () => {
       checkbox
       node-icon
       @current-data-change="onCurrentDataChange"
+      :filter-method="filterMethod"
       draggable
       :height="500"
+      :allow-drop="allowDrop"
+      @dropped-in="onDroppedIn"
     >
     </vue-project-tree>
   </div>

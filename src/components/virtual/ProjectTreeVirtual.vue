@@ -440,7 +440,11 @@ const onDroppedBefore = (
 
   emit('droppedBefore', event, dragData, dropData, extraData);
 
-  !extraData.isPreventDefault && extraData._default();
+  if (!extraData.isPreventDefault) {
+    extraData._default!();
+  } else {
+    refreshVisibleList();
+  }
 };
 // 节点拖拽放到节点内事件
 const onDroppedIn = (
@@ -453,7 +457,11 @@ const onDroppedIn = (
 
   emit('droppedIn', event, dragData, dropData, extraData);
 
-  !extraData.isPreventDefault && extraData._default();
+  if (!extraData.isPreventDefault) {
+    extraData._default!();
+  } else {
+    refreshVisibleList();
+  }
 };
 // 节点拖拽放到节点后事件
 const onDroppedAfter = (
@@ -466,7 +474,11 @@ const onDroppedAfter = (
 
   emit('droppedAfter', event, dragData, dropData, extraData);
 
-  !extraData.isPreventDefault && extraData._default();
+  if (!extraData.isPreventDefault) {
+    extraData._default!();
+  } else {
+    refreshVisibleList();
+  }
 };
 // 节点拖拽结束事件
 const onDragEnd = (event: DragEvent, data: NodeData, nodeElement: HTMLElement) => {

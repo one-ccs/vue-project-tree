@@ -111,33 +111,22 @@ const onDroppedIn = async (
 };
 
 const filterMethod = (value: any, data: NodeData) => {
-  console.log(data);
-
   return data._label?.includes(value);
 };
-const onSearch = (event: Event) => {
-  const value = (event.target as HTMLInputElement).value;
+const doFilter = (value: any) => {
   (treeRef.value as any)?.filter(value);
 };
 
 onMounted(async () => {
   treeData.value = await getData();
 });
+
+defineExpose({ doFilter });
 </script>
 
 <template>
   <div class="normal">
     <h3>普通树</h3>
-    <hr />
-    <span
-      class="item"
-      v-for="i in ['1', '2', '3', '4', '5']"
-      draggable="true"
-      @dragstart="(event: DragEvent) => event.dataTransfer?.setData('text/plain', i)"
-      >{{ i }}</span
-    >
-    <hr />
-    <input type="text" @change="onSearch" />
     <p>当前节点 id：{{ currentData?.id }}</p>
     <p>当前节点变化次数：{{ t }}</p>
     <vue-project-tree
@@ -159,21 +148,9 @@ onMounted(async () => {
 
 <style lang="less">
 .normal {
-  hr {
-    opacity: 0.3;
-  }
-
   & > p {
     padding: 0;
     margin: 0;
-  }
-
-  .item {
-    margin-right: 8px;
-    border-radius: 8px;
-    padding: 3px 8px;
-    background-color: #fff;
-    box-shadow: 0 0 6px -2px #333;
   }
 
   .vue-project-tree {

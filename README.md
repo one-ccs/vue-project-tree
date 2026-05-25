@@ -1,8 +1,9 @@
 # vue-project-tree
 
-使用 Vue3 + TS 不依赖其它第三方库，实现的树形结构展示组件，有拖拽、排序、节点过滤、多选、自定义图标等功能。
-覆写内置的 css 变量可修改节点样式。
+基于 **Vue 3 + TypeScript** 实现的树形展示组件，**零第三方依赖**。
+支持 **拖拽、排序、节点过滤、多选、自定义图标** 等功能，并可通过覆写内置 **CSS 变量** 灵活定制节点样式。
 
+![预览图](public/images/preview_01.jpg)
 ![预览图](https://i-blog.csdnimg.cn/direct/fc7fff3eeabb4da7b335272eb54e8663.gif#pic_center)
 
 ## 一、使用

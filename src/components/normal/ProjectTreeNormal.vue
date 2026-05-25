@@ -132,25 +132,25 @@ const emit = defineEmits<{
     event: DragEvent,
     data: NodeData,
     nodeElement: HTMLElement,
-    extraData: DroppedExtraData
+    extraData: DroppedExtraData,
   ];
   droppedBefore: [
     event: DragEvent,
     dragData: NodeData[],
     dropData: NodeData,
-    extraData: DroppedExtraData
+    extraData: DroppedExtraData,
   ];
   droppedIn: [
     event: DragEvent,
     dragData: NodeData[],
     dropData: NodeData,
-    extraData: DroppedExtraData
+    extraData: DroppedExtraData,
   ];
   droppedAfter: [
     event: DragEvent,
     dragData: NodeData[],
     dropData: NodeData,
-    extraData: DroppedExtraData
+    extraData: DroppedExtraData,
   ];
   end: [event: DragEvent, data: [NodeData, NodeData], nodeElement: [HTMLElement, HTMLElement]];
 }>();
@@ -460,8 +460,14 @@ const filter = (value: any) => {
 };
 const _filter = (value: any, root: NodeData) => {
   root._children?.forEach((data: NodeData) => {
-    data._isVisible = filterMethod(value, data);
-    if (data._children?.length) _filter(value, data);
+    const match = filterMethod(value, data);
+    let childMatch = false;
+    if (data._children?.length) {
+      _filter(value, data);
+      childMatch = data._children!.some((child: NodeData) => child._isVisible);
+    }
+    data._isVisible = match || childMatch;
+    if (childMatch) data._isExpanded = true;
   });
 };
 /**
