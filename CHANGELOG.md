@@ -1,5 +1,12 @@
 # vue-project-tree
 
+## 1.4.0
+
+### Minor Changes
+
+- 900ff50: feat: 添加虚拟滚动
+  fix: 修复普通树筛选失效的问题
+
 ## 1.3.4
 
 ### Patch Changes
